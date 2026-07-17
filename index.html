@@ -151,6 +151,30 @@
   .btn-ghost{flex:1; border:1px solid var(--line); background:#fff; color:var(--muted); font-family:inherit; font-weight:700; font-size:15px; padding:13px; border-radius:12px; cursor:pointer}
   .btn-main{flex:2; border:0; background:var(--accent); color:#fff; font-family:inherit; font-weight:700; font-size:15px; padding:13px; border-radius:12px; cursor:pointer}
   .btn-main:active,.btn-ghost:active{opacity:.9}
+  /* ---- Редактор категорий/подкатегорий ---- */
+  .cat-edit{display:none; align-items:center; gap:9px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 12px; margin-bottom:12px; box-shadow:var(--shadow)}
+  body.editmode .cat-edit{display:flex}
+  .cat-edit .ce-emo{font-size:18px; flex:none}
+  .cat-edit .ce-name{flex:1; font-weight:700; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .cat-edit button{width:32px; height:32px; flex:none; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:14px; padding:0}
+  .cat-edit button.del{color:var(--red); border-color:#e6cfc9}
+  .g-acts{display:none; gap:6px; margin-left:2px; flex:none}
+  body.editmode .g-acts{display:flex}
+  .g-acts button{width:28px; height:28px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:12.5px; padding:0}
+  .g-acts button.del{color:var(--red); border-color:#e6cfc9}
+  .newcat{display:none; align-items:center; justify-content:center; gap:8px; padding:11px 12px; margin:2px 4px 16px; border:1.5px dashed var(--accent); border-radius:12px; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; background:var(--card)}
+  body.editmode .newcat{display:flex}
+  /* ---- Эмодзи-пикер ---- */
+  .emoji-cur{display:flex; align-items:center; gap:11px; margin:2px 0 10px}
+  .emoji-cur .cur{font-size:28px; width:52px; height:52px; flex:none; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--line); border-radius:12px; background:#fff}
+  .emoji-cur .txt{font-size:11.5px; color:var(--muted); font-weight:600; line-height:1.4}
+  .emoji-sug{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px}
+  .emoji-sug:empty{display:none}
+  .emoji-sug .es{font-size:21px; width:42px; height:42px; border:1.5px solid var(--accent); background:var(--accent-soft); border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .emoji-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; max-height:184px; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:8px; margin-bottom:12px; border:1px solid var(--line); border-radius:12px; background:var(--bg)}
+  .emoji-grid .eg{font-size:21px; height:40px; border:0; background:none; border-radius:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0}
+  .emoji-grid .eg.on{background:var(--accent-soft); box-shadow:inset 0 0 0 1.5px var(--accent)}
+  .emoji-grid .eg:active{background:var(--card)}
 </style>
 </head>
 <body>
@@ -229,6 +253,25 @@
     <div class="sheet-acts">
       <button class="btn-ghost" onclick="closeSheet()">Отмена</button>
       <button class="btn-main" id="sheetSave" onclick="saveSheet()">Создать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BOTTOM SHEET: категория / подкатегория ===== -->
+<div id="esheet" class="sheet-back hidden" onclick="if(event.target===this) closeESheet()">
+  <div class="sheet-card">
+    <div class="sheet-grip"></div>
+    <h3 id="esTitle">Категория</h3>
+    <label class="fld"><span id="eNameLbl">Название</span>
+      <input id="eName" type="text" placeholder="Например, Вещи" autocomplete="off" enterkeyhint="done" oninput="suggestEmoji()">
+    </label>
+    <span class="fld-lbl">Эмодзи</span>
+    <div class="emoji-cur"><span class="cur" id="eEmojiCur">📋</span><span class="txt">Подсказки появятся по названию.<br>Или выберите из списка ниже.</span></div>
+    <div id="emojiSug" class="emoji-sug"></div>
+    <div id="emojiGrid" class="emoji-grid"></div>
+    <div class="sheet-acts">
+      <button class="btn-ghost" onclick="closeESheet()">Отмена</button>
+      <button class="btn-main" onclick="saveESheet()">Сохранить</button>
     </div>
   </div>
 </div>
@@ -338,7 +381,7 @@ function render(){
     const noTrips=!STATE.trips.length;
     pagesEl.innerHTML = noTrips
       ? '<div class="loading">Загрузка… или создайте поездку, нажав «🧳» вверху.</div>'
-      : '<div class="loading">В этой поездке пока нет категорий.<br><button class="reset" style="margin-top:12px" onclick="addCategory()">＋ Добавить категорию</button></div>';
+      : '<div class="loading">В этой поездке пока нет категорий.<br><button class="reset" style="margin-top:12px" onclick="openCatEditor(null)">＋ Добавить категорию</button></div>';
     document.getElementById('totalBar').style.width='0%';
     document.getElementById('totalLbl').textContent='—';
     document.getElementById('hint').textContent='';
@@ -347,7 +390,8 @@ function render(){
   MODEL.forEach(p=>{
     const page=document.createElement('div');
     page.className='page'+(p.key===active?' on':''); page.id='page-'+p.key;
-    let html=p.intro?`<div class="intro">${esc(p.intro)}</div>`:'';
+    let html=`<div class="cat-edit"><span class="ce-emo">${p.icon||'📋'}</span><span class="ce-name">${esc(p.tab||p.title||'Категория')}</span><button onclick="openCatEditor('${p.key}')">✎</button><button class="del" onclick="deleteCategory('${p.key}')">✕</button></div>`;
+    html+=p.intro?`<div class="intro">${esc(p.intro)}</div>`:'';
     p.groups.forEach((g,gi)=>{
       if(g.sub){ html+=`<div class="sub">${esc(g.sub)}</div>`; return; }
       const gk=p.key+'-'+gi;
@@ -355,6 +399,10 @@ function render(){
       html+=`<div class="group${closed}" data-gk="${gk}">
         <div class="g-head" onclick="toggleGroup('${gk}')">
           <span class="emo">${g.emo||''}</span><span class="ttl">${esc(g.title)}</span>
+          <span class="g-acts">
+            <button onclick="openGroupEditor(event,'${p.key}',${gi})">✎</button>
+            <button class="del" onclick="deleteGroup(event,'${p.key}',${gi})">✕</button>
+          </span>
           <span class="cnt" id="cnt-${gk}"></span><span class="chev">▼</span>
         </div><div class="items">`;
       g.items.forEach(it=>{
@@ -368,7 +416,8 @@ function render(){
       });
       html+=`</div><div class="addrow" onclick="addItem('${p.key}',${gi})">＋ Добавить пункт</div></div>`;
     });
-    html+=`<div class="newgrp" onclick="addGroup('${p.key}')">＋ Подкатегория</div>`;
+    html+=`<div class="newgrp" onclick="openGroupEditor(null,'${p.key}',null)">＋ Подкатегория</div>`;
+    html+=`<div class="newcat" onclick="openCatEditor(null)">＋ Категория</div>`;
     page.innerHTML=html; pagesEl.appendChild(page);
     const btn=document.createElement('button');
     btn.dataset.p=p.key; if(p.key===active) btn.classList.add('on');
@@ -564,17 +613,85 @@ function deleteTrip(e,id){ e.stopPropagation();
   if(STATE.activeTripId===id){ STATE.activeTripId = STATE.trips[0]?STATE.trips[0].id:null; syncModelRef(); active = MODEL[0]?MODEL[0].key:null; }
   save(); renderTrips(); render();
 }
-/* Минимальное создание категорий/подкатегорий (эмодзи-пикер — на следующем этапе) */
-function addCategory(){
-  const name=prompt('Название категории (можно с эмодзи в начале):'); if(name===null||name.trim()==='') return;
-  const key='c'+Date.now().toString(36)+(uid++);
-  MODEL.push({key, icon:'📋', tab:name.trim().slice(0,10), title:name.trim(), intro:'', groups:[]});
-  active=key; save(); render();
+/* ===== Редактор категорий/подкатегорий + эмодзи-пикер ===== */
+const EMOJIS=['🧳','🎒','👜','👕','👖','🧦','🧥','👟','🩴','🕶️','🧢','👒','🩱','🧴','🪥','🧼','💊','🩹','🌡️','🧻','🧷','📄','🛂','🎫','💳','💵','🔑','📱','💻','🔌','🔋','🎧','📷','⌚','🔦','🧭','🗺️','☂️','🕯️','🍼','🧸','🐾','🍔','🍎','🥤','☕','🍫','🧂','🍴','🏖️','⛺','🏔️','🚗','✈️','🚢','🛏️','🚿','📖','🏋️','⭐','❤️','🎁','📝','✅','📋','📦'];
+const EMOJI_HINTS=[
+  [['докум','паспорт','виза'],'🛂'],[['билет','посад'],'🎫'],
+  [['одежд','вещи','гардероб','шмот'],'👕'],[['куртк','пальто','пухов'],'🧥'],[['носк'],'🧦'],
+  [['обув','кроссов','ботин','туфл','тапоч','сандал'],'👟'],[['шапк','кепк','панам'],'🧢'],[['очки','солнцезащ'],'🕶️'],
+  [['аптеч','лекарств','таблет','медиц','здоров','витамин'],'💊'],[['гигиен','душ','мыл','зуб','космет','крем','шампун'],'🧴'],[['полотенц'],'🧻'],
+  [['пляж','море','купал','плаван','бассейн'],'🏖️'],[['горы','поход','треккин'],'🏔️'],[['палат','кемп','лагер'],'⛺'],
+  [['техник','гаджет','электрон','провод','кабел'],'🔌'],[['зарядк','заряд','повербанк','батар'],'🔋'],
+  [['телефон','смартфон'],'📱'],[['ноут','комп','лэптоп'],'💻'],[['наушник'],'🎧'],[['фото','камер'],'📷'],[['час '],'⌚'],[['фонар'],'🔦'],
+  [['деньг','налич','валют','финанс','рубл'],'💵'],[['карт'],'💳'],[['ключ'],'🔑'],
+  [['еда','перекус','продукт','кухн','снек'],'🍔'],[['вода','напит','питьё','питье','сок'],'🥤'],[['кофе','чай'],'☕'],
+  [['дет','ребён','ребен','малыш','игрушк'],'🧸'],[['зонт','дожд'],'☂️'],
+  [['машин','авто','руль'],'🚗'],[['самол','перелёт','перелет','рейс','аэропорт'],'✈️'],[['спорт','трениров','фитнес','зал'],'🏋️'],
+  [['подар','сувенир'],'🎁'],[['книг','чтен','журнал'],'📖'],[['дела','задач','список','todo','органайз','план'],'📋'],
+  [['маршрут','навиг'],'🗺️'],[['животн','питом','собак','кошк'],'🐾']
+];
+function emojiSuggest(name){
+  const s=(name||'').toLowerCase(); if(!s.trim()) return [];
+  const res=[]; for(const [stems,emo] of EMOJI_HINTS){ if(stems.some(st=>s.includes(st)) && res.indexOf(emo)<0) res.push(emo); }
+  return res.slice(0,7);
 }
-function addGroup(pk){
-  const p=MODEL.find(x=>x.key===pk); if(!p) return;
-  const title=prompt('Название подкатегории (можно с эмодзи в начале):'); if(title===null||title.trim()==='') return;
-  p.groups.push({emo:'', title:title.trim(), items:[]}); save(); render();
+let esMode='cat', esPk=null, esGi=null, esNew=false, esEmoji='📋';
+function openESheet(){ const s=document.getElementById('esheet'); s.classList.remove('hidden'); requestAnimationFrame(()=>s.classList.add('show')); }
+function closeESheet(){ const s=document.getElementById('esheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
+function buildEmojiGrid(){ document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e=>`<button type="button" class="eg${e===esEmoji?' on':''}" onclick="setEmoji('${e}')">${e}</button>`).join(''); }
+function setEmoji(e){ esEmoji=e; document.getElementById('eEmojiCur').textContent=e;
+  document.querySelectorAll('#emojiGrid .eg').forEach(b=>b.classList.toggle('on', b.textContent===e)); }
+function suggestEmoji(){
+  const sug=emojiSuggest(document.getElementById('eName').value);
+  document.getElementById('emojiSug').innerHTML = sug.map(e=>`<button type="button" class="es" onclick="setEmoji('${e}')">${e}</button>`).join('');
+}
+function openCatEditor(pk){
+  esMode='cat'; esNew=!pk; esPk=pk||null; esGi=null;
+  const p = pk ? MODEL.find(x=>x.key===pk) : null;
+  esEmoji = p ? (p.icon||'📋') : '📋';
+  document.getElementById('esTitle').textContent = pk ? 'Категория' : 'Новая категория';
+  document.getElementById('eNameLbl').textContent = 'Название категории';
+  document.getElementById('eName').value = p ? (p.tab||p.title||'') : '';
+  document.getElementById('eEmojiCur').textContent = esEmoji;
+  buildEmojiGrid(); suggestEmoji(); openESheet();
+}
+function openGroupEditor(e,pk,gi){
+  if(e && e.stopPropagation) e.stopPropagation();
+  esMode='group'; esNew=(gi===null||gi===undefined); esPk=pk; esGi=esNew?null:gi;
+  const p=MODEL.find(x=>x.key===pk); const g=(!esNew&&p)?p.groups[gi]:null;
+  esEmoji = g ? (g.emo||'📦') : '📦';
+  document.getElementById('esTitle').textContent = esNew ? 'Новая подкатегория' : 'Подкатегория';
+  document.getElementById('eNameLbl').textContent = 'Название подкатегории';
+  document.getElementById('eName').value = g ? (g.title||'') : '';
+  document.getElementById('eEmojiCur').textContent = esEmoji;
+  buildEmojiGrid(); suggestEmoji(); openESheet();
+}
+function saveESheet(){
+  const name=document.getElementById('eName').value.trim();
+  if(!name){ document.getElementById('eName').focus(); return; }
+  if(esMode==='cat'){
+    if(esNew){ const key='c'+Date.now().toString(36)+(uid++);
+      MODEL.push({key, icon:esEmoji, tab:name.slice(0,12), title:name, intro:'', groups:[]}); active=key;
+    } else { const p=MODEL.find(x=>x.key===esPk); if(p){ p.icon=esEmoji; p.tab=name.slice(0,12); p.title=name; } }
+  } else {
+    const p=MODEL.find(x=>x.key===esPk);
+    if(p){ if(esNew){ p.groups.push({emo:esEmoji, title:name, items:[]}); }
+      else if(p.groups[esGi]){ p.groups[esGi].emo=esEmoji; p.groups[esGi].title=name; } }
+  }
+  save(); closeESheet(); render();
+}
+function deleteCategory(pk){
+  const idx=MODEL.findIndex(x=>x.key===pk); if(idx<0) return; const p=MODEL[idx];
+  if(!confirm('Удалить категорию «'+(p.tab||p.title||'')+'» со всеми пунктами?')) return;
+  MODEL.splice(idx,1);
+  if(active===pk) active = MODEL[0]?MODEL[0].key:null;
+  save(); render();
+}
+function deleteGroup(e,pk,gi){
+  if(e && e.stopPropagation) e.stopPropagation();
+  const p=MODEL.find(x=>x.key===pk); if(!p||!p.groups[gi]) return;
+  if(!confirm('Удалить подкатегорию «'+(p.groups[gi].title||'')+'» со всеми пунктами?')) return;
+  p.groups.splice(gi,1); save(); render();
 }
 
 /* ================= СТАРТ ================= */
