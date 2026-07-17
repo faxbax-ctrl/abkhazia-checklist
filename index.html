@@ -129,6 +129,28 @@
   .tc-acts button{flex:1; border:1px solid var(--line); background:#fff; color:var(--muted); font-family:inherit; font-size:12px; font-weight:700; padding:8px; border-radius:9px; cursor:pointer}
   .tc-acts button.del{color:var(--red); border-color:#e6cfc9}
   .trips-empty{text-align:center; color:var(--muted); font-size:13px; padding:30px 12px; line-height:1.55}
+  /* ---- Bottom sheet (новая/изменить поездка) ---- */
+  .sheet-back{position:fixed; inset:0; z-index:90; background:rgba(30,25,15,.35); display:flex; align-items:flex-end; justify-content:center; opacity:0; transition:opacity .2s ease}
+  .sheet-back.show{opacity:1}
+  .sheet-back.hidden{display:none}
+  .sheet-card{width:100%; max-width:640px; background:var(--card); border-radius:20px 20px 0 0; padding:8px 18px calc(18px + env(safe-area-inset-bottom)); box-shadow:0 -8px 30px rgba(40,30,10,.18); transform:translateY(100%); transition:transform .24s cubic-bezier(.2,.8,.2,1); max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch}
+  .sheet-back.show .sheet-card{transform:none}
+  .sheet-grip{width:40px; height:5px; background:var(--line); border-radius:99px; margin:6px auto 12px}
+  .sheet-card h3{margin:0 0 14px; font-size:18px; font-weight:700; letter-spacing:-.2px}
+  .fld{display:block; margin-bottom:12px}
+  .fld > span, .fld-lbl{display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px}
+  .fld input, .sel{width:100%; border:1.5px solid var(--line); background:#fff; border-radius:11px; padding:12px 13px; font-family:inherit; font-size:16px; color:var(--ink); -webkit-appearance:none; appearance:none}
+  .fld input:focus, .sel:focus{outline:none; border-color:var(--accent)}
+  .fld-row{display:flex; gap:10px}
+  .fld-row .fld{flex:1; min-width:0}
+  .seg{display:flex; gap:6px; background:var(--bg); padding:4px; border-radius:12px; margin-bottom:10px}
+  .seg-b{flex:1; border:0; background:none; font-family:inherit; font-size:13.5px; font-weight:700; color:var(--muted); padding:9px; border-radius:9px; cursor:pointer}
+  .seg-b.on{background:var(--card); color:var(--accent); box-shadow:var(--shadow)}
+  .sel.hidden{display:none}
+  .sheet-acts{display:flex; gap:10px; margin-top:8px}
+  .btn-ghost{flex:1; border:1px solid var(--line); background:#fff; color:var(--muted); font-family:inherit; font-weight:700; font-size:15px; padding:13px; border-radius:12px; cursor:pointer}
+  .btn-main{flex:2; border:0; background:var(--accent); color:#fff; font-family:inherit; font-weight:700; font-size:15px; padding:13px; border-radius:12px; cursor:pointer}
+  .btn-main:active,.btn-ghost:active{opacity:.9}
 </style>
 </head>
 <body>
@@ -180,8 +202,35 @@
     <h2>Поездки</h2>
     <button class="x" onclick="closeTrips()">Закрыть</button>
   </div>
-  <button class="newtrip-btn" onclick="createTrip()">＋ Новая поездка</button>
+  <button class="newtrip-btn" onclick="openNewTrip()">＋ Новая поездка</button>
   <div id="tripList"></div>
+</div>
+
+<!-- ===== BOTTOM SHEET: новая / изменить поездку ===== -->
+<div id="sheet" class="sheet-back hidden" onclick="if(event.target===this) closeSheet()">
+  <div class="sheet-card">
+    <div class="sheet-grip"></div>
+    <h3 id="sheetTitle">Новая поездка</h3>
+    <label class="fld"><span>Локация</span>
+      <input id="fLoc" type="text" placeholder="Например, Абхазия" autocomplete="off" enterkeyhint="done">
+    </label>
+    <div class="fld-row">
+      <label class="fld"><span>Дата начала</span><input id="fFrom" type="date"></label>
+      <label class="fld"><span>Дата конца</span><input id="fTo" type="date"></label>
+    </div>
+    <div id="sheetSource">
+      <span class="fld-lbl">Из чего создать</span>
+      <div class="seg">
+        <button type="button" id="srcEmpty" class="seg-b on" onclick="setSource('empty')">Пустой</button>
+        <button type="button" id="srcCopy" class="seg-b" onclick="setSource('copy')">Копия поездки</button>
+      </div>
+      <select id="fCopy" class="sel hidden"></select>
+    </div>
+    <div class="sheet-acts">
+      <button class="btn-ghost" onclick="closeSheet()">Отмена</button>
+      <button class="btn-main" id="sheetSave" onclick="saveSheet()">Создать</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -422,7 +471,8 @@ function renderTrips(){
       <div class="tc-bar"><i style="width:${pct}%"></i></div>
       <div class="tc-lbl">${D} из ${T} · ${pct}%</div>
       <div class="tc-acts">
-        <button onclick="renameTrip(event,'${t.id}')">✎ Изменить</button>
+        <button onclick="openEditTrip(event,'${t.id}')">✎ Изменить</button>
+        <button onclick="duplicateTrip(event,'${t.id}')">⧉ Копия</button>
         <button class="del" onclick="deleteTrip(event,'${t.id}')">✕ Удалить</button>
       </div>
     </div>`;
@@ -434,20 +484,78 @@ function switchTrip(id){
   active = MODEL[0] ? MODEL[0].key : null;
   save(); closeTrips(); render(); window.scrollTo({top:0});
 }
-function createTrip(){
-  const loc=prompt('Локация поездки:'); if(loc===null||loc.trim()==='') return;
-  const df=(prompt('Дата начала (ГГГГ-ММ-ДД), можно пропустить:','')||'').trim();
-  const dt=df? (prompt('Дата конца (ГГГГ-ММ-ДД), можно пропустить:','')||'').trim() : '';
-  const t=newTrip({location:loc.trim(), dateFrom:df, dateTo:dt, model:[]});
-  STATE.trips.push(t); STATE.activeTripId=t.id; syncModelRef();
-  active=null; save(); closeTrips(); render();
+/* Глубокая копия структуры поездки: новые id, галочки сброшены */
+function cloneModel(model){
+  return (model||[]).map(p=>({
+    key:'c'+Date.now().toString(36)+(uid++),
+    icon:p.icon||'📋', tab:p.tab||'', title:p.title||'', intro:p.intro||'',
+    groups:(p.groups||[]).map(g=>{
+      const ng={...g};
+      if(ng.items) ng.items=ng.items.map(it=>({id:nid(), t:it.t, n:it.n||'', done:false}));
+      return ng;
+    })
+  }));
 }
-function renameTrip(e,id){ e.stopPropagation();
+/* --- Bottom sheet: новая / изменить поездку --- */
+let sheetMode='new', sheetTripId=null, sheetSource='empty';
+function openSheet(){ const s=document.getElementById('sheet'); s.classList.remove('hidden'); requestAnimationFrame(()=>s.classList.add('show')); }
+function closeSheet(){ const s=document.getElementById('sheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
+function setSource(s){ sheetSource=s;
+  document.getElementById('srcEmpty').classList.toggle('on',s==='empty');
+  document.getElementById('srcCopy').classList.toggle('on',s==='copy');
+  document.getElementById('fCopy').classList.toggle('hidden',s!=='copy');
+}
+function openNewTrip(){
+  sheetMode='new'; sheetTripId=null;
+  document.getElementById('sheetTitle').textContent='Новая поездка';
+  document.getElementById('sheetSave').textContent='Создать';
+  document.getElementById('fLoc').value='';
+  document.getElementById('fFrom').value='';
+  document.getElementById('fTo').value='';
+  document.getElementById('sheetSource').style.display='';
+  const trips=[...STATE.trips].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  document.getElementById('fCopy').innerHTML=trips.map(t=>{
+    const d=fmtRange(t.dateFrom,t.dateTo);
+    return `<option value="${t.id}">${esc(t.location)}${d?' · '+esc(d):''}</option>`;
+  }).join('');
+  document.getElementById('srcCopy').style.display=trips.length?'':'none';
+  setSource('empty');
+  openSheet();
+}
+function openEditTrip(e,id){ e.stopPropagation();
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
-  const loc=prompt('Локация:',t.location); if(loc===null) return; if(loc.trim()) t.location=loc.trim();
-  const df=prompt('Дата начала (ГГГГ-ММ-ДД), пусто — убрать:',t.dateFrom||''); if(df!==null) t.dateFrom=df.trim();
-  const dt=prompt('Дата конца (ГГГГ-ММ-ДД), пусто — убрать:',t.dateTo||''); if(dt!==null) t.dateTo=dt.trim();
-  save(); renderTrips(); renderTripHeader();
+  sheetMode='edit'; sheetTripId=id;
+  document.getElementById('sheetTitle').textContent='Изменить поездку';
+  document.getElementById('sheetSave').textContent='Сохранить';
+  document.getElementById('fLoc').value=t.location||'';
+  document.getElementById('fFrom').value=t.dateFrom||'';
+  document.getElementById('fTo').value=t.dateTo||'';
+  document.getElementById('sheetSource').style.display='none';
+  openSheet();
+}
+function saveSheet(){
+  const loc=document.getElementById('fLoc').value.trim();
+  if(!loc){ document.getElementById('fLoc').focus(); return; }
+  const from=document.getElementById('fFrom').value||'';
+  const to=document.getElementById('fTo').value||'';
+  if(from&&to&&to<from){ alert('Дата конца раньше даты начала.'); return; }
+  if(sheetMode==='edit'){
+    const t=STATE.trips.find(x=>x.id===sheetTripId);
+    if(t){ t.location=loc; t.dateFrom=from; t.dateTo=to; }
+    save(); closeSheet(); renderTrips(); renderTripHeader();
+    return;
+  }
+  let model=[];
+  if(sheetSource==='copy'){ const src=STATE.trips.find(x=>x.id===document.getElementById('fCopy').value); if(src) model=cloneModel(src.model); }
+  const t=newTrip({location:loc, dateFrom:from, dateTo:to, model});
+  STATE.trips.push(t); STATE.activeTripId=t.id; syncModelRef();
+  active = MODEL[0] ? MODEL[0].key : null;
+  save(); closeSheet(); closeTrips(); render();
+}
+function duplicateTrip(e,id){ e.stopPropagation();
+  const t=STATE.trips.find(x=>x.id===id); if(!t) return;
+  const copy=newTrip({location:t.location+' (копия)', dateFrom:t.dateFrom, dateTo:t.dateTo, model:cloneModel(t.model)});
+  STATE.trips.push(copy); save(); renderTrips();
 }
 function deleteTrip(e,id){ e.stopPropagation();
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
