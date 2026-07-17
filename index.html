@@ -101,6 +101,34 @@
   .reset{background:none; border:1px solid var(--line); color:var(--muted); font-family:inherit; font-size:12px; font-weight:600; padding:9px 16px; border-radius:99px; cursor:pointer}
   .reset:active{background:var(--card)}
   .hint{font-size:11.5px; color:var(--muted); text-align:center; margin-top:2px; line-height:1.5}
+  /* ---- Заголовок-поездка ---- */
+  .trip-title{display:flex; align-items:center; gap:6px; border:0; background:none; font-family:inherit; color:var(--ink); font-size:18px; font-weight:700; letter-spacing:-.2px; padding:0; cursor:pointer; max-width:72vw; overflow:hidden}
+  .trip-title #tripName{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .trip-title .chev-d{font-size:12px; color:var(--muted); font-weight:700; flex:none}
+  .trip-meta{font-size:11.5px; color:var(--muted); font-weight:600; margin-top:4px; min-height:14px}
+  .trip-meta .cd{color:var(--accent)}
+  /* ---- Экран поездок ---- */
+  #trips{position:fixed; inset:0; z-index:80; background:var(--bg); display:flex; flex-direction:column; padding:calc(12px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom)); overflow-y:auto; -webkit-overflow-scrolling:touch; animation:fade .2s ease}
+  #trips.hidden{display:none}
+  .trips-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+  .trips-head h2{margin:0; font-size:21px; font-weight:700; letter-spacing:-.3px}
+  .trips-head .x{border:0; background:none; color:var(--muted); font-family:inherit; font-size:15px; font-weight:600; cursor:pointer; padding:6px 4px}
+  .newtrip-btn{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; border:0; background:var(--accent); color:#fff; font-family:inherit; font-weight:700; font-size:15px; padding:14px; border-radius:14px; cursor:pointer; margin-bottom:16px; box-shadow:var(--shadow)}
+  .newtrip-btn:active{opacity:.9}
+  .trip-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 15px; margin-bottom:12px; box-shadow:var(--shadow); cursor:pointer; position:relative}
+  .trip-card.active{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft), var(--shadow)}
+  .trip-card:active{transform:scale(.995)}
+  .tc-top{display:flex; align-items:center; gap:8px}
+  .tc-name{font-size:16px; font-weight:700; flex:1; letter-spacing:-.2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .tc-badge{font-size:10.5px; font-weight:700; color:var(--accent); background:var(--accent-soft); padding:3px 8px; border-radius:99px; flex:none}
+  .tc-dates{font-size:12px; color:var(--muted); font-weight:600; margin-top:4px}
+  .tc-bar{height:6px; background:var(--line); border-radius:99px; margin-top:10px; overflow:hidden}
+  .tc-bar > i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px}
+  .tc-lbl{font-size:11px; color:var(--muted); font-weight:600; margin-top:6px}
+  .tc-acts{display:flex; gap:6px; margin-top:11px}
+  .tc-acts button{flex:1; border:1px solid var(--line); background:#fff; color:var(--muted); font-family:inherit; font-size:12px; font-weight:700; padding:8px; border-radius:9px; cursor:pointer}
+  .tc-acts button.del{color:var(--red); border-color:#e6cfc9}
+  .trips-empty{text-align:center; color:var(--muted); font-size:13px; padding:30px 12px; line-height:1.55}
 </style>
 </head>
 <body>
@@ -126,11 +154,12 @@
 <div id="app" style="display:none">
   <header>
     <div class="h-row">
-      <h1>🧳 Абхазия</h1>
+      <button class="trip-title" onclick="openTrips()"><span>🧳</span><span id="tripName">Поездка</span><span class="chev-d">▾</span></button>
       <div class="h-right">
         <button class="editbtn" id="editBtn" onclick="toggleEdit()">✎ Править</button>
       </div>
     </div>
+    <div class="trip-meta" id="tripMeta"></div>
     <div class="bar"><i id="totalBar"></i></div>
     <div class="bar-lbl" id="totalLbl">—</div>
   </header>
@@ -143,6 +172,16 @@
     </div>
   </main>
   <nav id="tabs"></nav>
+</div>
+
+<!-- ===== ЭКРАН ПОЕЗДОК ===== -->
+<div id="trips" class="hidden">
+  <div class="trips-head">
+    <h2>Поездки</h2>
+    <button class="x" onclick="closeTrips()">Закрыть</button>
+  </div>
+  <button class="newtrip-btn" onclick="createTrip()">＋ Новая поездка</button>
+  <div id="tripList"></div>
 </div>
 
 <script>
@@ -186,13 +225,22 @@ function registerSW(){
 /* ================= МОДЕЛЬ =================
    Содержимого в коде нет — весь список приходит из базы (Firestore).
    Пустой старт нужен только для самого первого запуска на новом устройстве. */
-const SEED = [];
 const KEY="abkhazia_v2";
 let uid=1; const nid=()=> 'i'+(Date.now().toString(36))+(uid++);
-function buildModel(){ return []; }
-let MODEL;
-function load(){ try{const s=localStorage.getItem(KEY); if(s){MODEL=JSON.parse(s); return;}}catch(e){} MODEL=buildModel(); }
-function save(){ localUpdatedAt=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(MODEL)); localStorage.setItem(KEY+"_ts",String(localUpdatedAt));}catch(e){} pushCloud(); }
+function tid(){ return 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function newTrip(o){ o=o||{}; return {id:tid(), location:o.location||'Поездка', dateFrom:o.dateFrom||'', dateTo:o.dateTo||'', createdAt:o.createdAt||Date.now(), model:o.model||[]}; }
+function freshState(){ return {v:2, activeTripId:null, trips:[]}; }
+/* Заворачиваем старый формат (просто массив категорий) в первую поездку. Идемпотентно. */
+function migrate(raw){
+  if(Array.isArray(raw)){ const t=newTrip({location:'Абхазия', model:raw}); return {v:2, activeTripId:t.id, trips:[t]}; }
+  if(raw && raw.v>=2 && Array.isArray(raw.trips)) return raw;
+  return freshState();
+}
+let STATE, MODEL=[];
+function activeTrip(){ return STATE.trips.find(t=>t.id===STATE.activeTripId) || STATE.trips[0] || null; }
+function syncModelRef(){ const t=activeTrip(); if(t) STATE.activeTripId=t.id; MODEL = t ? t.model : []; }
+function load(){ try{const s=localStorage.getItem(KEY); if(s){ STATE=migrate(JSON.parse(s)); syncModelRef(); return; }}catch(e){} STATE=freshState(); syncModelRef(); }
+function save(){ localUpdatedAt=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(STATE)); localStorage.setItem(KEY+"_ts",String(localUpdatedAt));}catch(e){} pushCloud(); }
 load();
 let localUpdatedAt=0; try{ localUpdatedAt=parseInt(localStorage.getItem(KEY+"_ts")||"0",10)||0; }catch(e){}
 const myId=Math.random().toString(36).slice(2);
@@ -202,7 +250,7 @@ let __pushTimer=null;
 function pushCloud(){
   if(!window.CLOUD) return;
   clearTimeout(__pushTimer);
-  __pushTimer=setTimeout(()=>{ try{ window.CLOUD.push({data:JSON.stringify(MODEL),updatedAt:localUpdatedAt,writer:myId}); }catch(e){} }, 400);
+  __pushTimer=setTimeout(()=>{ try{ window.CLOUD.push({data:JSON.stringify(STATE),updatedAt:localUpdatedAt,writer:myId}); }catch(e){} }, 400);
 }
 function startCloud(){
   const go=()=>{
@@ -211,11 +259,12 @@ function startCloud(){
       if(!d){ if(!localUpdatedAt) localUpdatedAt=Date.now(); pushCloud(); return; }
       if(d.writer===myId) return;
       if((d.updatedAt||0) >= localUpdatedAt){
-        try{ MODEL=JSON.parse(d.data); }catch(e){ return; }
+        let parsed; try{ parsed=JSON.parse(d.data); }catch(e){ return; }
+        STATE=migrate(parsed); syncModelRef();
         localUpdatedAt=d.updatedAt||Date.now();
-        try{ localStorage.setItem(KEY,JSON.stringify(MODEL)); localStorage.setItem(KEY+"_ts",String(localUpdatedAt)); }catch(e){}
-        if(active===null && MODEL.length) active=MODEL[0].key;
-        render();
+        try{ localStorage.setItem(KEY,JSON.stringify(STATE)); localStorage.setItem(KEY+"_ts",String(localUpdatedAt)); }catch(e){}
+        if((active===null || !MODEL.some(p=>p.key===active)) && MODEL.length) active=MODEL[0].key;
+        render(); if(tripsOpen) renderTrips();
       } else { pushCloud(); }
     }, (e)=>{
       if(e && e.code==='permission-denied'){ showDenied(__authedUser && __authedUser.email); }
@@ -233,13 +282,17 @@ const openState={};
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
 function render(){
-  if(active===null && MODEL.length) active=MODEL[0].key;
+  renderTripHeader();
+  if(MODEL.length && !MODEL.some(p=>p.key===active)) active=MODEL[0].key;
   pagesEl.innerHTML=''; tabsEl.innerHTML='';
   if(!MODEL.length){
-    pagesEl.innerHTML='<div class="loading">Загрузка списка…</div>';
+    const noTrips=!STATE.trips.length;
+    pagesEl.innerHTML = noTrips
+      ? '<div class="loading">Загрузка… или создайте поездку, нажав «🧳» вверху.</div>'
+      : '<div class="loading">В этой поездке пока нет категорий.<br><button class="reset" style="margin-top:12px" onclick="addCategory()">＋ Добавить категорию</button></div>';
     document.getElementById('totalBar').style.width='0%';
     document.getElementById('totalLbl').textContent='—';
-    document.getElementById('hint').textContent='Список загружается из облака.';
+    document.getElementById('hint').textContent='';
     return;
   }
   MODEL.forEach(p=>{
@@ -266,6 +319,7 @@ function render(){
       });
       html+=`</div><div class="addrow" onclick="addItem('${p.key}',${gi})">＋ Добавить пункт</div></div>`;
     });
+    html+=`<div class="newgrp" onclick="addGroup('${p.key}')">＋ Подкатегория</div>`;
     page.innerHTML=html; pagesEl.appendChild(page);
     const btn=document.createElement('button');
     btn.dataset.p=p.key; if(p.key===active) btn.classList.add('on');
@@ -316,6 +370,103 @@ function refresh(){
     else{dot.textContent='✓'; dot.style.display=pt>0?'flex':'none'; btn.classList.add('done');} });
   document.getElementById('totalBar').style.width=(T?D/T*100:0)+'%';
   document.getElementById('totalLbl').textContent=`${D} из ${T} · ${T?Math.round(D/T*100):0}%`;
+}
+
+/* ================= ПОЕЗДКИ ================= */
+const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+function pd(s){ if(!s) return null; const d=new Date(s+'T00:00:00'); return isNaN(d.getTime())?null:d; }
+function fmtOne(s){ const d=pd(s); return d? d.getDate()+' '+MON[d.getMonth()] : ''; }
+function fmtRange(a,b){
+  if(!a&&!b) return '';
+  if(a&&b){ const da=pd(a),db=pd(b); if(!da||!db) return fmtOne(a||b);
+    if(a===b) return fmtOne(a);
+    if(da.getMonth()===db.getMonth() && da.getFullYear()===db.getFullYear()) return da.getDate()+'–'+db.getDate()+' '+MON[db.getMonth()];
+    return fmtOne(a)+' – '+fmtOne(b);
+  }
+  return fmtOne(a||b);
+}
+function plural(n,one,few,many){ const m=n%100; if(m>=11&&m<=14) return many; const d=n%10; if(d===1) return one; if(d>=2&&d<=4) return few; return many; }
+function countdown(t){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const from=pd(t.dateFrom), to=pd(t.dateTo)||from;
+  if(from){ const diff=Math.round((from-today)/86400000);
+    if(diff>1) return '⏳ '+diff+' '+plural(diff,'день','дня','дней');
+    if(diff===1) return '⏳ завтра';
+    if(diff===0) return '🎒 сегодня старт'; }
+  if(to){ const dt=Math.round((to-today)/86400000);
+    return dt>=0 ? '🧭 в поездке' : '✓ завершена'; }
+  return '';
+}
+function renderTripHeader(){
+  const t=activeTrip();
+  document.getElementById('tripName').textContent = t ? t.location : 'Поездка';
+  const meta=document.getElementById('tripMeta');
+  if(!t){ meta.innerHTML=''; return; }
+  const dates=fmtRange(t.dateFrom,t.dateTo), cd=countdown(t);
+  meta.innerHTML = (dates?esc(dates):'') + (dates&&cd?' · ':'') + (cd?`<span class="cd">${esc(cd)}</span>`:'');
+}
+let tripsOpen=false;
+function openTrips(){ tripsOpen=true; renderTrips(); document.getElementById('trips').classList.remove('hidden'); window.scrollTo({top:0}); }
+function closeTrips(){ tripsOpen=false; document.getElementById('trips').classList.add('hidden'); }
+function tripProgress(t){ let T=0,D=0; (t.model||[]).forEach(p=>p.groups&&p.groups.forEach(g=>g.items&&g.items.forEach(it=>{T++; if(it.done)D++;}))); return {D,T}; }
+function renderTrips(){
+  const list=document.getElementById('tripList');
+  if(!STATE.trips.length){ list.innerHTML='<div class="trips-empty">Пока нет поездок.<br>Нажмите «＋ Новая поездка», чтобы создать первую.</div>'; return; }
+  const trips=[...STATE.trips].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  list.innerHTML=trips.map(t=>{
+    const {D,T}=tripProgress(t); const pct=T?Math.round(D/T*100):0;
+    const act=t.id===STATE.activeTripId; const dates=fmtRange(t.dateFrom,t.dateTo);
+    return `<div class="trip-card${act?' active':''}" onclick="switchTrip('${t.id}')">
+      <div class="tc-top"><span class="tc-name">🧳 ${esc(t.location)}</span>${act?'<span class="tc-badge">открыта</span>':''}</div>
+      ${dates?`<div class="tc-dates">${esc(dates)}</div>`:''}
+      <div class="tc-bar"><i style="width:${pct}%"></i></div>
+      <div class="tc-lbl">${D} из ${T} · ${pct}%</div>
+      <div class="tc-acts">
+        <button onclick="renameTrip(event,'${t.id}')">✎ Изменить</button>
+        <button class="del" onclick="deleteTrip(event,'${t.id}')">✕ Удалить</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function switchTrip(id){
+  const t=STATE.trips.find(x=>x.id===id); if(!t) return;
+  STATE.activeTripId=id; syncModelRef();
+  active = MODEL[0] ? MODEL[0].key : null;
+  save(); closeTrips(); render(); window.scrollTo({top:0});
+}
+function createTrip(){
+  const loc=prompt('Локация поездки:'); if(loc===null||loc.trim()==='') return;
+  const df=(prompt('Дата начала (ГГГГ-ММ-ДД), можно пропустить:','')||'').trim();
+  const dt=df? (prompt('Дата конца (ГГГГ-ММ-ДД), можно пропустить:','')||'').trim() : '';
+  const t=newTrip({location:loc.trim(), dateFrom:df, dateTo:dt, model:[]});
+  STATE.trips.push(t); STATE.activeTripId=t.id; syncModelRef();
+  active=null; save(); closeTrips(); render();
+}
+function renameTrip(e,id){ e.stopPropagation();
+  const t=STATE.trips.find(x=>x.id===id); if(!t) return;
+  const loc=prompt('Локация:',t.location); if(loc===null) return; if(loc.trim()) t.location=loc.trim();
+  const df=prompt('Дата начала (ГГГГ-ММ-ДД), пусто — убрать:',t.dateFrom||''); if(df!==null) t.dateFrom=df.trim();
+  const dt=prompt('Дата конца (ГГГГ-ММ-ДД), пусто — убрать:',t.dateTo||''); if(dt!==null) t.dateTo=dt.trim();
+  save(); renderTrips(); renderTripHeader();
+}
+function deleteTrip(e,id){ e.stopPropagation();
+  const t=STATE.trips.find(x=>x.id===id); if(!t) return;
+  if(!confirm('Удалить поездку «'+t.location+'»? Отменить будет нельзя.')) return;
+  STATE.trips=STATE.trips.filter(x=>x.id!==id);
+  if(STATE.activeTripId===id){ STATE.activeTripId = STATE.trips[0]?STATE.trips[0].id:null; syncModelRef(); active = MODEL[0]?MODEL[0].key:null; }
+  save(); renderTrips(); render();
+}
+/* Минимальное создание категорий/подкатегорий (эмодзи-пикер — на следующем этапе) */
+function addCategory(){
+  const name=prompt('Название категории (можно с эмодзи в начале):'); if(name===null||name.trim()==='') return;
+  const key='c'+Date.now().toString(36)+(uid++);
+  MODEL.push({key, icon:'📋', tab:name.trim().slice(0,10), title:name.trim(), intro:'', groups:[]});
+  active=key; save(); render();
+}
+function addGroup(pk){
+  const p=MODEL.find(x=>x.key===pk); if(!p) return;
+  const title=prompt('Название подкатегории (можно с эмодзи в начале):'); if(title===null||title.trim()==='') return;
+  p.groups.push({emo:'', title:title.trim(), items:[]}); save(); render();
 }
 
 /* ================= СТАРТ ================= */
