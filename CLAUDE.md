@@ -33,19 +33,35 @@
 - `CLAUDE.md` — этот файл.
 
 ## Модель данных
-В памяти — массив `MODEL`:
+Приложение хранит **несколько поездок**. Корневой объект — `STATE`:
 ```
-[ { key, icon, tab, intro, groups: [
-      { emo, title, items: [ { id, t, n, done } ] }
-] } ]
+STATE = { v:2, activeTripId, trips: [
+  { id, location, dateFrom, dateTo, createdAt, model: [
+      { key, icon, tab, intro, groups: [
+          { emo, title, items: [ { id, t, n, done } ] }
+      ] }
+  ] }
+] }
 ```
+- Поездка (`trip`): `location` — название, `dateFrom`/`dateTo` — даты ('ГГГГ-ММ-ДД',
+  необязательно), `model` — прежняя структура категорий (страницы → группы → пункты).
+- Категория = страница (`page` `{key, icon, tab, title, intro, groups}`), где `icon` —
+  эмодзи и `tab` — короткая подпись в нижней навигации.
+- Подкатегория = группа (`group` `{emo, title, items}`); бывают также
+  секции-заголовки `{sub}` (без пунктов).
 - `t` — текст пункта, `n` — пометка (необязательно), `done` — галочка.
+- Глобальная `MODEL` всегда указывает на `model` активной поездки (см. `syncModelRef()`);
+  `active` — ключ текущей категории внутри поездки.
+- **Миграция**: старый формат (в облаке лежал просто массив категорий) автоматически
+  заворачивается в первую поездку — см. `migrate()`. Идемпотентна.
 - В облаке лежит один документ `checklists/shared` вида
-  `{ data: <JSON.stringify(MODEL)>, updatedAt: <ms>, writer: <clientId> }`.
+  `{ data: <JSON.stringify(STATE)>, updatedAt: <ms>, writer: <clientId> }`.
 - Локальный кэш: `localStorage` ключ `abkhazia_v2` (+ `_ts` = updatedAt).
 - Синхронизация: last-write-wins по `updatedAt`; свои же записи игнорируются по `writer`.
-- **Содержимого списка в коде НЕТ** (`const SEED = []`). Всё приходит из Firestore.
+- **Содержимого списка в коде НЕТ.** Всё приходит из Firestore.
   Это сделано ради приватности — репозиторий публичный.
+- ⚠️ Старая закэшированная версия приложения новый формат `STATE` не поймёт — после
+  деплоя каждое устройство нужно обновить один раз (поднимай версию кэша в `sw.js`).
 
 ## Доступ и безопасность (ключевое)
 - Вход: Google (`signInWithPopup`, фолбэк на `signInWithRedirect`).
@@ -71,15 +87,21 @@
 1. **Менял `index.html` или `sw.js`? Подними версию кэша в `sw.js`:**
    `const CACHE = 'abkhazia-vN'` → `vN+1`. Иначе у пользователей останется старая
    версия из кэша service worker.
-2. Не ломай структуру `MODEL` — она сериализуется в облако. Меняешь схему —
-   продумай обратную совместимость со старым документом.
+2. Не ломай структуру `STATE`/`MODEL` — она сериализуется в облако. Меняешь схему —
+   продумай обратную совместимость (обнови `migrate()`).
 3. Никаких секретов/личных данных в коде.
 4. После правок — проверь, что приложение открывается и данные грузятся.
 
 ## Как обычно просят менять
 - Оформление/цвета — в `<style>` внутри `index.html`.
 - Экраны входа / «нет доступа» — блок `#lock` + функции `showLogin/showDenied`.
-- Логика галочек/правок — функции `toggleItem/editItem/addItem/delItem/render`.
+- Логика галочек/пунктов — функции `toggleItem/editItem/addItem/delItem/render`.
+- Поездки — экран `#trips` + `renderTrips/switchTrip/openNewTrip/saveSheet/`
+  `duplicateTrip/deleteTrip`; bottom-sheet `#sheet`.
+- Категории/подкатегории — bottom-sheet `#esheet` + `openCatEditor/openGroupEditor/`
+  `saveESheet/deleteCategory/deleteGroup`; эмодзи-пикер — `EMOJIS`, `EMOJI_HINTS`,
+  `emojiSuggest` (умная подсказка по названию, офлайн).
+- Даты/отсчёт — `fmtRange/countdown/renderTripHeader`.
 - Синхронизация — `pushCloud/startCloud` + модуль Firebase внизу файла.
 
 ## Рабочий цикл (для новичка)
