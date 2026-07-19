@@ -118,6 +118,8 @@
   .trip-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 15px; margin-bottom:12px; box-shadow:var(--shadow); cursor:pointer; position:relative}
   .trip-card.active{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft), var(--shadow)}
   .trip-card:active{transform:scale(.995)}
+  .trip-card.tpl{border-style:dashed; border-color:var(--accent); background:linear-gradient(180deg,var(--accent-soft),var(--card))}
+  .tc-badge.tpl{color:var(--muted); background:var(--bg)}
   .tc-top{display:flex; align-items:center; gap:8px}
   .tc-name{font-size:16px; font-weight:700; flex:1; letter-spacing:-.2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .tc-badge{font-size:10.5px; font-weight:700; color:var(--accent); background:var(--accent-soft); padding:3px 8px; border-radius:99px; flex:none}
@@ -246,7 +248,8 @@
       <span class="fld-lbl">Из чего создать</span>
       <div class="seg">
         <button type="button" id="srcEmpty" class="seg-b on" onclick="setSource('empty')">Пустой</button>
-        <button type="button" id="srcCopy" class="seg-b" onclick="setSource('copy')">Копия поездки</button>
+        <button type="button" id="srcTpl" class="seg-b" onclick="setSource('template')">Шаблон</button>
+        <button type="button" id="srcCopy" class="seg-b" onclick="setSource('copy')">Копия</button>
       </div>
       <select id="fCopy" class="sel hidden"></select>
     </div>
@@ -329,9 +332,21 @@ function migrate(raw){
   return freshState();
 }
 let STATE, MODEL=[];
-function activeTrip(){ return STATE.trips.find(t=>t.id===STATE.activeTripId) || STATE.trips[0] || null; }
+const TPL_ID='__tpl__';
+function getTemplate(){ return STATE.trips.find(t=>t.kind==='template'); }
+function realTrips(){ return STATE.trips.filter(t=>t.kind!=='template'); }
+function isTemplate(t){ return !!t && t.kind==='template'; }
+/* Шаблон существует всегда. При первом создании — заполняется из текущего/первого списка. */
+function ensureTemplate(){
+  if(getTemplate()) return;
+  const seedFrom = realTrips().find(t=>t.id===STATE.activeTripId) || realTrips()[0];
+  const model = (seedFrom && seedFrom.model && seedFrom.model.length) ? cloneModel(seedFrom.model) : [];
+  STATE.trips.push({ id:TPL_ID, kind:'template', location:'Шаблон', dateFrom:'', dateTo:'', createdAt:0, model });
+}
+function activeTrip(){ return STATE.trips.find(t=>t.id===STATE.activeTripId) || realTrips()[0] || STATE.trips[0] || null; }
 function syncModelRef(){ const t=activeTrip(); if(t) STATE.activeTripId=t.id; MODEL = t ? t.model : []; }
-function load(){ try{const s=localStorage.getItem(KEY); if(s){ STATE=migrate(JSON.parse(s)); syncModelRef(); return; }}catch(e){} STATE=freshState(); syncModelRef(); }
+function normalize(){ ensureTemplate(); syncModelRef(); }
+function load(){ try{const s=localStorage.getItem(KEY); if(s){ STATE=migrate(JSON.parse(s)); normalize(); return; }}catch(e){} STATE=freshState(); normalize(); }
 function save(){ localUpdatedAt=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(STATE)); localStorage.setItem(KEY+"_ts",String(localUpdatedAt));}catch(e){} pushCloud(); }
 load();
 let localUpdatedAt=0; try{ localUpdatedAt=parseInt(localStorage.getItem(KEY+"_ts")||"0",10)||0; }catch(e){}
@@ -352,7 +367,7 @@ function startCloud(){
       if(d.writer===myId) return;
       if((d.updatedAt||0) >= localUpdatedAt){
         let parsed; try{ parsed=JSON.parse(d.data); }catch(e){ return; }
-        STATE=migrate(parsed); syncModelRef();
+        STATE=migrate(parsed); normalize();
         localUpdatedAt=d.updatedAt||Date.now();
         try{ localStorage.setItem(KEY,JSON.stringify(STATE)); localStorage.setItem(KEY+"_ts",String(localUpdatedAt)); }catch(e){}
         if((active===null || !MODEL.some(p=>p.key===active)) && MODEL.length) active=MODEL[0].key;
@@ -378,10 +393,14 @@ function render(){
   if(MODEL.length && !MODEL.some(p=>p.key===active)) active=MODEL[0].key;
   pagesEl.innerHTML=''; tabsEl.innerHTML='';
   if(!MODEL.length){
-    const noTrips=!STATE.trips.length;
+    const noTrips=!realTrips().length && !getTemplate();
+    const tplActive=isTemplate(activeTrip());
     pagesEl.innerHTML = noTrips
       ? '<div class="loading">Загрузка… или создайте поездку, нажав «🧳» вверху.</div>'
-      : '<div class="loading">В этой поездке пока нет категорий.<br><button class="reset" style="margin-top:12px" onclick="openCatEditor(null)">＋ Добавить категорию</button></div>';
+      : '<div class="loading">'+(tplActive
+          ? 'Шаблон пуст. Добавьте категории и пункты — это станет основой для новых поездок.'
+          : 'В этой поездке пока нет категорий.')
+        +'<br><button class="reset" style="margin-top:12px" onclick="openCatEditor(null)">＋ Добавить категорию</button></div>';
     document.getElementById('totalBar').style.width='0%';
     document.getElementById('totalLbl').textContent='—';
     document.getElementById('hint').textContent='';
@@ -496,10 +515,11 @@ function countdown(t){
   return '';
 }
 function renderTripHeader(){
-  const t=activeTrip();
-  document.getElementById('tripName').textContent = t ? t.location : 'Поездка';
+  const t=activeTrip(); const tpl=isTemplate(t);
+  document.getElementById('tripName').textContent = t ? (tpl?'Шаблон':t.location) : 'Поездка';
   const meta=document.getElementById('tripMeta');
   if(!t){ meta.innerHTML=''; return; }
+  if(tpl){ meta.innerHTML='<span class="cd">📋 Основа для новых поездок</span>'; return; }
   const dates=fmtRange(t.dateFrom,t.dateTo), cd=countdown(t);
   meta.innerHTML = (dates?esc(dates):'') + (dates&&cd?' · ':'') + (cd?`<span class="cd">${esc(cd)}</span>`:'');
 }
@@ -509,23 +529,36 @@ function closeTrips(){ tripsOpen=false; document.getElementById('trips').classLi
 function tripProgress(t){ let T=0,D=0; (t.model||[]).forEach(p=>p.groups&&p.groups.forEach(g=>g.items&&g.items.forEach(it=>{T++; if(it.done)D++;}))); return {D,T}; }
 function renderTrips(){
   const list=document.getElementById('tripList');
-  if(!STATE.trips.length){ list.innerHTML='<div class="trips-empty">Пока нет поездок.<br>Нажмите «＋ Новая поездка», чтобы создать первую.</div>'; return; }
-  const trips=[...STATE.trips].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  list.innerHTML=trips.map(t=>{
-    const {D,T}=tripProgress(t); const pct=T?Math.round(D/T*100):0;
-    const act=t.id===STATE.activeTripId; const dates=fmtRange(t.dateFrom,t.dateTo);
-    return `<div class="trip-card${act?' active':''}" onclick="switchTrip('${t.id}')">
-      <div class="tc-top"><span class="tc-name">🧳 ${esc(t.location)}</span>${act?'<span class="tc-badge">открыта</span>':''}</div>
-      ${dates?`<div class="tc-dates">${esc(dates)}</div>`:''}
-      <div class="tc-bar"><i style="width:${pct}%"></i></div>
-      <div class="tc-lbl">${D} из ${T} · ${pct}%</div>
-      <div class="tc-acts">
-        <button onclick="openEditTrip(event,'${t.id}')">✎ Изменить</button>
-        <button onclick="duplicateTrip(event,'${t.id}')">⧉ Копия</button>
-        <button class="del" onclick="deleteTrip(event,'${t.id}')">✕ Удалить</button>
-      </div>
+  const tpl=getTemplate();
+  const trips=realTrips().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  let html='';
+  if(tpl){
+    const {T}=tripProgress(tpl); const act=tpl.id===STATE.activeTripId;
+    html+=`<div class="trip-card tpl${act?' active':''}" onclick="switchTrip('${tpl.id}')">
+      <div class="tc-top"><span class="tc-name">📋 Шаблон</span>${act?'<span class="tc-badge">открыт</span>':'<span class="tc-badge tpl">основа</span>'}</div>
+      <div class="tc-dates">Основа для новых поездок · ${T} ${plural(T,'пункт','пункта','пунктов')}</div>
     </div>`;
-  }).join('');
+  }
+  if(!trips.length){
+    html+='<div class="trips-empty">Пока нет поездок.<br>Нажмите «＋ Новая поездка», чтобы создать первую.</div>';
+  } else {
+    html+=trips.map(t=>{
+      const {D,T}=tripProgress(t); const pct=T?Math.round(D/T*100):0;
+      const act=t.id===STATE.activeTripId; const dates=fmtRange(t.dateFrom,t.dateTo);
+      return `<div class="trip-card${act?' active':''}" onclick="switchTrip('${t.id}')">
+        <div class="tc-top"><span class="tc-name">🧳 ${esc(t.location)}</span>${act?'<span class="tc-badge">открыта</span>':''}</div>
+        ${dates?`<div class="tc-dates">${esc(dates)}</div>`:''}
+        <div class="tc-bar"><i style="width:${pct}%"></i></div>
+        <div class="tc-lbl">${D} из ${T} · ${pct}%</div>
+        <div class="tc-acts">
+          <button onclick="openEditTrip(event,'${t.id}')">✎ Изменить</button>
+          <button onclick="duplicateTrip(event,'${t.id}')">⧉ Копия</button>
+          <button class="del" onclick="deleteTrip(event,'${t.id}')">✕ Удалить</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  list.innerHTML=html;
 }
 function switchTrip(id){
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
@@ -551,6 +584,7 @@ function openSheet(){ const s=document.getElementById('sheet'); s.classList.remo
 function closeSheet(){ const s=document.getElementById('sheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
 function setSource(s){ sheetSource=s;
   document.getElementById('srcEmpty').classList.toggle('on',s==='empty');
+  document.getElementById('srcTpl').classList.toggle('on',s==='template');
   document.getElementById('srcCopy').classList.toggle('on',s==='copy');
   document.getElementById('fCopy').classList.toggle('hidden',s!=='copy');
 }
@@ -562,13 +596,15 @@ function openNewTrip(){
   document.getElementById('fFrom').value='';
   document.getElementById('fTo').value='';
   document.getElementById('sheetSource').style.display='';
-  const trips=[...STATE.trips].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const trips=realTrips().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   document.getElementById('fCopy').innerHTML=trips.map(t=>{
     const d=fmtRange(t.dateFrom,t.dateTo);
     return `<option value="${t.id}">${esc(t.location)}${d?' · '+esc(d):''}</option>`;
   }).join('');
   document.getElementById('srcCopy').style.display=trips.length?'':'none';
-  setSource('empty');
+  const tpl=getTemplate(); const tplHas=tpl&&tpl.model&&tpl.model.length;
+  document.getElementById('srcTpl').style.display=tpl?'':'none';
+  setSource(tplHas?'template':'empty');
   openSheet();
 }
 function openEditTrip(e,id){ e.stopPropagation();
@@ -595,7 +631,8 @@ function saveSheet(){
     return;
   }
   let model=[];
-  if(sheetSource==='copy'){ const src=STATE.trips.find(x=>x.id===document.getElementById('fCopy').value); if(src) model=cloneModel(src.model); }
+  if(sheetSource==='template'){ const tpl=getTemplate(); if(tpl) model=cloneModel(tpl.model); }
+  else if(sheetSource==='copy'){ const src=STATE.trips.find(x=>x.id===document.getElementById('fCopy').value); if(src) model=cloneModel(src.model); }
   const t=newTrip({location:loc, dateFrom:from, dateTo:to, model});
   STATE.trips.push(t); STATE.activeTripId=t.id; syncModelRef();
   active = MODEL[0] ? MODEL[0].key : null;
@@ -607,7 +644,7 @@ function duplicateTrip(e,id){ e.stopPropagation();
   STATE.trips.push(copy); save(); renderTrips();
 }
 function deleteTrip(e,id){ e.stopPropagation();
-  const t=STATE.trips.find(x=>x.id===id); if(!t) return;
+  const t=STATE.trips.find(x=>x.id===id); if(!t || isTemplate(t)) return;
   if(!confirm('Удалить поездку «'+t.location+'»? Отменить будет нельзя.')) return;
   STATE.trips=STATE.trips.filter(x=>x.id!==id);
   if(STATE.activeTripId===id){ STATE.activeTripId = STATE.trips[0]?STATE.trips[0].id:null; syncModelRef(); active = MODEL[0]?MODEL[0].key:null; }
