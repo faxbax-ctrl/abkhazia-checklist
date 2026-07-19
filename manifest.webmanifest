@@ -1,6 +1,6 @@
 {
-  "name": "Абхазия · чек-лист",
-  "short_name": "Абхазия",
+  "name": "Соберись!",
+  "short_name": "Соберись!",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
