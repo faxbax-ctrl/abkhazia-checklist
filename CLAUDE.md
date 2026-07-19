@@ -6,10 +6,11 @@
 (можно прямо попросить: «обнови CLAUDE.md под изменения»).
 
 ## Что это за приложение
-Семейный чек-лист для сборов в путешествие. Открывается как приложение на iPhone
-(PWA — «На экран Домой»), работает офлайн, синхронизируется между устройствами и
-несколькими пользователями через облако. Вход — через Google, доступ только у
-разрешённых аккаунтов.
+**«Соберись!»** — семейный чек-лист для сборов в путешествие (официальное название,
+оно же имя PWA на экране «Домой»). Открывается как приложение на iPhone/Android и в
+браузерах на ноутбуке (адаптивная вёрстка), работает офлайн, синхронизируется между
+устройствами и несколькими пользователями через облако. Вход — через Google
+(с выбором аккаунта `prompt:'select_account'`), доступ только у разрешённых аккаунтов.
 
 - Живой адрес: https://faxbax-ctrl.github.io/abkhazia-checklist/
 - Репозиторий: https://github.com/faxbax-ctrl/abkhazia-checklist (публичный)
@@ -103,10 +104,21 @@ STATE = { v:2, activeTripId, trips: [
 - Логика галочек/пунктов — функции `toggleItem/editItem/addItem/delItem/render`.
 - Поездки — экран `#trips` + `renderTrips/switchTrip/openNewTrip/saveSheet/`
   `duplicateTrip/deleteTrip`; bottom-sheet `#sheet`.
-- Категории/подкатегории — bottom-sheet `#esheet` + `openCatEditor/openGroupEditor/`
-  `saveESheet/deleteCategory/deleteGroup`; эмодзи-пикер — `EMOJIS`, `EMOJI_HINTS`,
-  `emojiSuggest` (умная подсказка по названию, офлайн).
-- Даты/отсчёт — `fmtRange/countdown/renderTripHeader`.
+- Категории — добавляются/меняются через **Профиль** (`openCatEditor/deleteCategory`,
+  список в `renderProfileCats`), НЕ на странице списка. Подкатегории — в режиме «Править»
+  (`openGroupEditor/deleteGroup`, кнопка «＋ Подкатегория»). Эмодзи-пикер — bottom-sheet
+  `#esheet`, `EMOJIS`, `EMOJI_HINTS`, `emojiSuggest` (умная подсказка, офлайн).
+- Задачи — добавляются полем «＋ Добавить задачу» **без «Править»** (`addKey`, Enter);
+  комментарий (пометка) — кнопка 💬 (`addComment`); удаление/правка текста — в «Править»
+  (`delItem/editItem`). Выполненные сортируются вниз подкатегории при рендере.
+  Перетаскивание задач в пределах категории — `onHandleDown/onDragMove/applyDrop` (ручка ≡).
+- Профиль — экран `#profile`: имя (localStorage `prof_<uid>`, `getProfName/saveProfName`),
+  управление категориями, Logout (`doSignOut`). Аватар в шапке — `updateAvatar`.
+  Первый вход без имени → `openProfile(true)`.
+- Даты — формат `31.07.26 – 9.08.26` (`fmtOne/fmtRange`); отсчёт — `countdown`.
+  Поездки ранжируются от актуальной к прошлым — `sortTrips`.
+- Нижняя навигация — макс. 6 категорий в ряд, дальше горизонтальная прокрутка;
+  активная вкладка жирная с подсветкой.
 - Синхронизация — `pushCloud/startCloud` + модуль Firebase внизу файла.
 
 ## Рабочий цикл (для новичка)
