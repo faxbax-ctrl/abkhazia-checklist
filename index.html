@@ -83,9 +83,10 @@
   .box svg{width:14px; height:14px; opacity:0; transform:scale(.5); transition:all .15s}
   .item.checked .box{background:var(--accent); border-color:var(--accent)}
   .item.checked .box svg{opacity:1; transform:none}
-  .lbl{font-size:14.5px; line-height:1.35; padding-top:1px; flex:1}
+  .lbl-wrap{flex:1; min-width:0; padding-top:1px; cursor:pointer}
+  .lbl{font-size:14.5px; line-height:1.35; display:block}
   .item.checked .lbl{color:var(--done); text-decoration:line-through; text-decoration-color:var(--done)}
-  .note{display:block; font-size:11.5px; color:var(--warn); font-weight:600; margin-top:2px}
+  .note{font-size:11.5px; color:var(--muted); font-weight:500; margin-top:3px; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
   .item.checked .note{color:var(--done); text-decoration:none}
   .sub{font-size:13px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.4px; padding:18px 6px 8px; display:flex; align-items:center; gap:8px}
   .sub::before{content:''; width:16px; height:3px; background:var(--accent); border-radius:2px; opacity:.55}
@@ -108,7 +109,9 @@
   .drag-clone{position:fixed; z-index:200; pointer-events:none; box-shadow:0 10px 26px rgba(40,30,10,.22); background:var(--card); border:1.5px solid var(--accent); border-radius:11px; margin:0; padding:11px 10px; opacity:.97}
   .item.drop-before{box-shadow:inset 0 3px 0 -1px var(--accent)}
   /* Добавление задачи — всегда доступно, без «Править» */
-  .additem{display:flex; align-items:center; gap:9px; padding:9px 12px; margin:2px 6px 6px; border:1.5px dashed var(--line); border-radius:11px; background:var(--card)}
+  .additem{display:flex; align-items:center; gap:9px; padding:11px 12px; margin:2px 6px 6px; border:1.5px dashed var(--line); border-radius:11px; background:var(--card); cursor:pointer}
+  .additem:active{background:var(--accent-soft)}
+  .additem .addtx{color:var(--accent); font-weight:700; font-size:14px}
   .additem .plus{font-weight:800; font-size:16px; color:var(--accent); flex:none}
   .additem input{flex:1; min-width:0; border:0; background:none; font-family:inherit; font-size:14.5px; color:var(--ink); padding:3px 0}
   .additem input:focus{outline:none}
@@ -207,6 +210,52 @@
   .prof-cat button{width:32px; height:32px; flex:none; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:14px; padding:0}
   .prof-cat button.del{color:var(--red); border-color:#e6cfc9}
   .prof-logout{margin-top:24px; width:100%; border:1px solid #e6cfc9; background:#fff; color:var(--red); font-family:inherit; font-weight:700; font-size:15px; padding:14px; border-radius:12px; cursor:pointer}
+  .prof-cat .ghandle{display:flex}
+  .prof-cat.dragging{opacity:.35}
+  /* ---- Окно задачи (Todoist-стиль) ---- */
+  .ts-head{display:flex; align-items:center; justify-content:space-between; margin:0 0 14px}
+  .ts-head h3{margin:0}
+  .ts-del{border:0; background:none; color:var(--red); font-family:inherit; font-weight:700; font-size:13.5px; cursor:pointer; padding:6px 4px; display:flex; align-items:center; gap:5px}
+  .ts-del.hidden{display:none}
+  .fld textarea{width:100%; border:1.5px solid var(--line); background:#fff; border-radius:11px; padding:12px 13px; font-family:inherit; font-size:15px; color:var(--ink); line-height:1.4; resize:vertical; min-height:88px}
+  .fld textarea:focus{outline:none; border-color:var(--accent)}
+  /* ---- Перетаскивание: плейсхолдер-«разрыв» ---- */
+  .drag-ph{margin:2px 6px; border:1.5px dashed var(--accent); border-radius:11px; background:var(--accent-soft); transition:height .12s ease}
+  .drag-ph.grp{margin:0 0 14px; min-height:54px}
+  /* ---- Ручка перетаскивания у подкатегорий и категорий ---- */
+  .ghandle{display:none; width:28px; height:28px; flex:none; align-items:center; justify-content:center; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--muted); font-size:13px; touch-action:none; cursor:grab; padding:0; user-select:none}
+  body.editmode .ghandle{display:flex}
+  .group.dragging, .sub.dragging{opacity:.35}
+  /* ---- Секция-заголовок в правке ---- */
+  .sub{position:relative}
+  .sub .sub-tx{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .sub-acts{display:none; gap:6px; flex:none; margin-left:auto}
+  body.editmode .sub-acts{display:flex}
+  .sub-acts button{width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:12px; padding:0; color:var(--muted)}
+  .sub-acts button.del{color:var(--red); border-color:#e6cfc9}
+  .newsub{display:none; align-items:center; justify-content:center; gap:8px; padding:10px 12px; margin:2px 4px 14px; border:1.5px dashed var(--muted); border-radius:12px; color:var(--muted); font-weight:700; font-size:13px; cursor:pointer; background:var(--card)}
+  body.editmode .newsub{display:flex}
+  /* ---- Кнопка «Посмотреть списком» у категории ---- */
+  .viewcat{display:flex; align-items:center; justify-content:center; gap:7px; width:100%; border:1px solid var(--line); background:var(--card); color:var(--accent); font-family:inherit; font-weight:700; font-size:13px; padding:10px; border-radius:12px; cursor:pointer; margin-bottom:12px}
+  .viewcat:active{background:var(--accent-soft)}
+  /* ---- Окно «Посмотреть списком» ---- */
+  .vlist{max-height:64vh; overflow-y:auto; -webkit-overflow-scrolling:touch}
+  .vlist .vg{font-weight:800; font-size:13px; color:var(--accent); margin:14px 0 6px; text-transform:uppercase; letter-spacing:.3px}
+  .vlist .vg:first-child{margin-top:0}
+  .vlist .vi{display:flex; gap:8px; align-items:flex-start; padding:6px 0; font-size:14.5px; line-height:1.35; border-bottom:1px solid var(--line)}
+  .vlist .vi .mk{flex:none; width:18px; color:var(--accent); font-weight:800}
+  .vlist .vi.off .mk{color:var(--line)}
+  .vlist .vi.off{color:var(--muted)}
+  .vlist .vi .vn{display:block; font-size:11.5px; color:var(--muted); font-weight:500; margin-top:2px}
+  /* ---- Вкладки Поездки / Шаблоны ---- */
+  .trips-tabs{display:flex; gap:6px; background:var(--card); border:1px solid var(--line); padding:4px; border-radius:12px; margin-bottom:14px}
+  .trips-tabs button{flex:1; border:0; background:none; font-family:inherit; font-size:14px; font-weight:700; color:var(--muted); padding:9px; border-radius:9px; cursor:pointer}
+  .trips-tabs button.on{background:var(--accent); color:#fff}
+  /* ---- Своё эмодзи ---- */
+  .emoji-own{display:flex; gap:8px; margin-bottom:10px}
+  .emoji-own input{flex:1; min-width:0; border:1.5px solid var(--line); background:#fff; border-radius:11px; padding:10px 12px; font-family:inherit; font-size:18px; text-align:center; color:var(--ink)}
+  .emoji-own input:focus{outline:none; border-color:var(--accent)}
+  .emoji-own button{flex:none; border:0; background:var(--accent-soft); color:var(--accent); font-family:inherit; font-weight:700; font-size:13px; padding:0 14px; border-radius:11px; cursor:pointer}
 </style>
 </head>
 <body>
@@ -254,10 +303,13 @@
 <!-- ===== ЭКРАН ПОЕЗДОК ===== -->
 <div id="trips" class="hidden">
   <div class="trips-head">
-    <h2>Поездки</h2>
+    <h2>Мои списки</h2>
     <button class="x" onclick="closeTrips()">Закрыть</button>
   </div>
-  <button class="newtrip-btn" onclick="openNewTrip()">＋ Новая поездка</button>
+  <div class="trips-tabs">
+    <button id="ttTrips" class="on" onclick="setTripsTab('trips')">Поездки</button>
+    <button id="ttTpl" onclick="setTripsTab('templates')">Шаблоны</button>
+  </div>
   <div id="tripList"></div>
 </div>
 
@@ -296,6 +348,7 @@
         <button type="button" id="srcTpl" class="seg-b" onclick="setSource('template')">Шаблон</button>
         <button type="button" id="srcCopy" class="seg-b" onclick="setSource('copy')">Копия</button>
       </div>
+      <select id="fTpl" class="sel hidden"></select>
       <select id="fCopy" class="sel hidden"></select>
     </div>
     <div class="sheet-acts">
@@ -313,10 +366,16 @@
     <label class="fld"><span id="eNameLbl">Название</span>
       <input id="eName" type="text" placeholder="Например, Вещи" autocomplete="off" enterkeyhint="done" oninput="suggestEmoji()">
     </label>
-    <span class="fld-lbl">Эмодзи</span>
-    <div class="emoji-cur"><span class="cur" id="eEmojiCur">📋</span><span class="txt">Подсказки появятся по названию.<br>Или выберите из списка ниже.</span></div>
-    <div id="emojiSug" class="emoji-sug"></div>
-    <div id="emojiGrid" class="emoji-grid"></div>
+    <div id="esEmojiBlock">
+      <span class="fld-lbl">Эмодзи</span>
+      <div class="emoji-cur"><span class="cur" id="eEmojiCur">📋</span><span class="txt">Подсказки по названию, вставьте своё эмодзи или выберите из списка.</span></div>
+      <div class="emoji-own">
+        <input id="eOwn" type="text" placeholder="Своё эмодзи" maxlength="4" autocomplete="off">
+        <button type="button" onclick="applyOwnEmoji()">Поставить</button>
+      </div>
+      <div id="emojiSug" class="emoji-sug"></div>
+      <div id="emojiGrid" class="emoji-grid"></div>
+    </div>
     <div class="sheet-acts">
       <button class="btn-ghost" onclick="closeESheet()">Отмена</button>
       <button class="btn-main" onclick="saveESheet()">Сохранить</button>
@@ -324,12 +383,48 @@
   </div>
 </div>
 
+<!-- ===== BOTTOM SHEET: задача (Todoist-стиль) ===== -->
+<div id="tsheet" class="sheet-back hidden" onclick="if(event.target===this) closeTaskSheet()">
+  <div class="sheet-card">
+    <div class="sheet-grip"></div>
+    <div class="ts-head">
+      <h3 id="tsTitle">Задача</h3>
+      <button class="ts-del" id="tsDel" onclick="deleteTaskFromSheet()">🗑 Удалить</button>
+    </div>
+    <label class="fld"><span>Заголовок</span>
+      <input id="tsName" type="text" placeholder="Что взять / сделать" autocomplete="off" enterkeyhint="done">
+    </label>
+    <label class="fld"><span>Комментарий</span>
+      <textarea id="tsNote" placeholder="Детали, количество, напоминание…"></textarea>
+    </label>
+    <div class="sheet-acts">
+      <button class="btn-ghost" onclick="closeTaskSheet()">Отмена</button>
+      <button class="btn-main" onclick="saveTaskSheet()">ОК</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BOTTOM SHEET: посмотреть списком ===== -->
+<div id="vsheet" class="sheet-back hidden" onclick="if(event.target===this) closeViewSheet()">
+  <div class="sheet-card">
+    <div class="sheet-grip"></div>
+    <div class="ts-head"><h3 id="vsTitle">Список</h3>
+      <button class="ts-del" style="color:var(--muted)" onclick="closeViewSheet()">Закрыть</button></div>
+    <div class="vlist" id="vsBody"></div>
+  </div>
+</div>
+
 <script>
 /* ================= ДОСТУП (только вход через Google) =================
    В коде НЕТ ни списка разрешённых email, ни содержимого списка.
    Кто имеет доступ к данным — решают серверные правила Firestore. */
-function doSignIn(){ if(window.AUTH) window.AUTH.signIn(); }
+function doSignIn(){ document.getElementById('pwErr').textContent=''; if(window.AUTH) window.AUTH.signIn(); }
 function doSignOut(){ if(window.AUTH) window.AUTH.signOut(); }
+window.onSignInError=function(code){
+  document.getElementById('pwErr').textContent = (code==='auth/popup-blocked')
+    ? 'Разрешите всплывающие окна и нажмите «Войти» ещё раз.'
+    : 'Не удалось войти. Нажмите «Войти» ещё раз.';
+};
 
 let __authedUser=null;
 function showLogin(){
@@ -383,6 +478,7 @@ function migrate(raw){
 let STATE, MODEL=[];
 const TPL_ID='__tpl__';
 function getTemplate(){ return STATE.trips.find(t=>t.kind==='template'); }
+function getTemplates(){ return STATE.trips.filter(t=>t.kind==='template'); }
 function realTrips(){ return STATE.trips.filter(t=>t.kind!=='template'); }
 function isTemplate(t){ return !!t && t.kind==='template'; }
 /* Шаблон существует всегда. При первом создании — заполняется из текущего/первого списка. */
@@ -458,36 +554,43 @@ function render(){
   MODEL.forEach(p=>{
     const page=document.createElement('div');
     page.className='page'+(p.key===active?' on':''); page.id='page-'+p.key;
-    let html='';
+    let html=`<button class="viewcat" onclick="openViewSheet('${p.key}')">👁 Посмотреть списком</button>`;
     p.groups.forEach((g,gi)=>{
-      if(g.sub){ html+=`<div class="sub">${esc(g.sub)}</div>`; return; }
+      if(typeof g.sub==='string'){
+        html+=`<div class="sub" data-gi="${gi}"><span class="sub-tx">${esc(g.sub)}</span>
+          <span class="sub-acts">
+            <button onclick="openSubEditor(event,'${p.key}',${gi})">✎</button>
+            <button class="del" onclick="deleteGroup(event,'${p.key}',${gi})">✕</button>
+            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}',${gi})">≡</button>
+          </span></div>`;
+        return;
+      }
       const gk=p.key+'-'+gi;
       const closed=openState[gk]===false?' closed':'';
-      html+=`<div class="group${closed}" data-gk="${gk}">
+      html+=`<div class="group${closed}" data-gk="${gk}" data-gi="${gi}">
         <div class="g-head" onclick="toggleGroup('${gk}')">
           <span class="emo">${g.emo||''}</span><span class="ttl">${esc(g.title)}</span>
           <span class="g-acts">
             <button onclick="openGroupEditor(event,'${p.key}',${gi})">✎</button>
             <button class="del" onclick="deleteGroup(event,'${p.key}',${gi})">✕</button>
+            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}',${gi})">≡</button>
           </span>
           <span class="cnt" id="cnt-${gk}"></span><span class="chev">▼</span>
         </div><div class="items">`;
       const disp=g.items.slice().sort((a,b)=>(a.done?1:0)-(b.done?1:0));
       disp.forEach(it=>{
-        const note=it.n?`<span class="note">↳ ${esc(it.n)}</span>`:'';
-        html+=`<div class="item${it.done?' checked':''}" data-id="${it.id}" data-gi="${gi}" onclick="toggleItem('${it.id}')">
-          <span class="box">${CHECK}</span><span class="lbl">${esc(it.t)}${note}</span>
-          <button class="cmt" onclick="addComment(event,'${it.id}')" title="Комментарий">💬</button>
-          <span class="acts">
-            <button class="act" onclick="editItem(event,'${it.id}')">✎</button>
-            <button class="act del" onclick="delItem(event,'${it.id}')">✕</button>
-          </span>
+        const note=it.n?`<span class="note">${esc(it.n)}</span>`:'';
+        html+=`<div class="item${it.done?' checked':''}" data-id="${it.id}" data-gi="${gi}" onpointerdown="onItemPointerDown(event,'${it.id}')">
+          <span class="box" onclick="boxTap(event,'${it.id}')">${CHECK}</span>
+          <div class="lbl-wrap" onclick="openTaskEdit('${it.id}')"><span class="lbl">${esc(it.t)}</span>${note}</div>
+          <span class="acts"><button class="act del" onclick="delItem(event,'${it.id}')">✕</button></span>
           <button class="drag" onpointerdown="onHandleDown(event,'${it.id}')">≡</button>
         </div>`;
       });
-      html+=`<div class="additem"><span class="plus">＋</span><input class="addinp" data-gi="${gi}" placeholder="Добавить задачу" enterkeyhint="done" autocomplete="off" onkeydown="addKey(event,'${p.key}',${gi})"></div></div></div>`;
+      html+=`<div class="additem" onclick="openTaskNew('${p.key}',${gi})"><span class="plus">＋</span><span class="addtx">Добавить задачу</span></div></div></div>`;
     });
     html+=`<div class="newgrp" onclick="openGroupEditor(null,'${p.key}',null)">＋ Подкатегория</div>`;
+    html+=`<div class="newsub" onclick="openSubEditor(null,'${p.key}',null)">＋ Заголовок-раздел</div>`;
     page.innerHTML=html; pagesEl.appendChild(page);
     const btn=document.createElement('button');
     btn.dataset.p=p.key; if(p.key===active) btn.classList.add('on');
@@ -495,35 +598,76 @@ function render(){
     btn.onclick=()=>go(p.key); tabsEl.appendChild(btn);
   });
   document.getElementById('hint').textContent = document.body.classList.contains('editmode')
-    ? 'Режим правки: ✎ изменить, ✕ удалить, ≡ перетащить. Задачи добавляются полем ниже без правки.'
-    : 'Нажмите «Править», чтобы добавить или удалить подкатегорию либо удалить задачу.';
+    ? 'Правка: ✎ изменить, ✕ удалить, ≡ или долгое нажатие — перетащить. Ниже — «＋ Подкатегория» и «＋ Заголовок-раздел».'
+    : 'Нажмите на задачу, чтобы открыть её. «Править» — заголовки-разделы, подкатегории и порядок.';
   refresh();
-  if(pendingFocus){ const inp=document.querySelector('.page.on .addinp[data-gi="'+pendingFocus.gi+'"]'); pendingFocus=null; if(inp){ inp.focus(); } }
 }
 function findItem(id){ for(const p of MODEL) for(const g of p.groups) if(g.items) for(const it of g.items) if(it.id===id) return {it,g,p}; return null; }
 function toggleGroup(gk){ openState[gk]=!(openState[gk]!==false); document.querySelector(`.group[data-gk="${gk}"]`).classList.toggle('closed'); }
-let pendingFocus=null;
-function toggleItem(id){
+let justDragged=false;
+function boxTap(e,id){
+  e.stopPropagation();
   if(document.body.classList.contains('editmode')) return;
   const f=findItem(id); if(!f) return;
-  f.it.done=!f.it.done; /* выполненные уходят вниз — сортируется при рендере */
+  f.it.done=!f.it.done; /* выполненные уходят вниз при рендере */
   save(); render();
 }
-function editItem(e,id){ e.stopPropagation(); const f=findItem(id); if(!f) return;
-  const t=prompt("Текст задачи:",f.it.t); if(t===null||t.trim()==="") return;
-  f.it.t=t.trim(); save(); render(); }
-function addComment(e,id){ e.stopPropagation(); const f=findItem(id); if(!f) return;
-  const n=prompt("Комментарий к задаче:", f.it.n||""); if(n===null) return;
-  f.it.n=n.trim(); save(); render(); }
 function delItem(e,id){ e.stopPropagation(); const f=findItem(id); if(!f) return;
   if(!confirm("Удалить: «"+f.it.t+"»?")) return; f.g.items=f.g.items.filter(x=>x.id!==id); save(); render(); }
-function addKey(e,pk,gi){
-  if(e.key!=='Enter') return;
-  const v=e.target.value.trim(); if(!v) return;
-  const p=MODEL.find(x=>x.key===pk); if(!p||!p.groups[gi]) return;
-  const arr=p.groups[gi].items||(p.groups[gi].items=[]);
-  arr.push({id:nid(),t:v,n:'',done:false}); /* выполненные и так снизу при рендере */
-  pendingFocus={pk,gi}; save(); render();
+
+/* ---- Окно задачи (Todoist-стиль) ---- */
+let tsMode='new', tsId=null, tsPk=null, tsGi=null;
+function openTS(){ const s=document.getElementById('tsheet'); s.classList.remove('hidden'); requestAnimationFrame(()=>s.classList.add('show')); }
+function closeTaskSheet(){ const s=document.getElementById('tsheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
+function openTaskEdit(id){
+  if(justDragged) return;
+  const f=findItem(id); if(!f) return;
+  tsMode='edit'; tsId=id;
+  document.getElementById('tsTitle').textContent='Задача';
+  document.getElementById('tsDel').classList.remove('hidden');
+  document.getElementById('tsName').value=f.it.t||'';
+  document.getElementById('tsNote').value=f.it.n||'';
+  openTS();
+}
+function openTaskNew(pk,gi){
+  tsMode='new'; tsPk=pk; tsGi=gi; tsId=null;
+  document.getElementById('tsTitle').textContent='Новая задача';
+  document.getElementById('tsDel').classList.add('hidden');
+  document.getElementById('tsName').value='';
+  document.getElementById('tsNote').value='';
+  openTS(); setTimeout(()=>document.getElementById('tsName').focus(),80);
+}
+function saveTaskSheet(){
+  const t=document.getElementById('tsName').value.trim();
+  const n=document.getElementById('tsNote').value.trim();
+  if(!t){ document.getElementById('tsName').focus(); return; }
+  if(tsMode==='edit'){ const f=findItem(tsId); if(f){ f.it.t=t; f.it.n=n; } }
+  else { const p=MODEL.find(x=>x.key===tsPk); if(p&&p.groups[tsGi]){ (p.groups[tsGi].items||(p.groups[tsGi].items=[])).push({id:nid(),t,n,done:false}); } }
+  save(); closeTaskSheet(); render();
+}
+function deleteTaskFromSheet(){
+  if(tsMode!=='edit'||!tsId) return;
+  const f=findItem(tsId); if(!f) return;
+  if(!confirm('Удалить задачу «'+f.it.t+'»?')) return;
+  f.g.items=f.g.items.filter(x=>x.id!==tsId);
+  save(); closeTaskSheet(); render();
+}
+
+/* ---- Окно «Посмотреть списком» ---- */
+function openVS(){ const s=document.getElementById('vsheet'); s.classList.remove('hidden'); requestAnimationFrame(()=>s.classList.add('show')); }
+function closeViewSheet(){ const s=document.getElementById('vsheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
+function openViewSheet(pk){
+  const p=MODEL.find(x=>x.key===pk); if(!p) return;
+  document.getElementById('vsTitle').textContent=(p.icon?p.icon+' ':'')+(p.tab||p.title||'Список');
+  let html='', total=0, done=0;
+  p.groups.forEach(g=>{
+    if(typeof g.sub==='string'){ html+=`<div class="vg" style="color:var(--ink);opacity:.5">${esc(g.sub)}</div>`; return; }
+    html+=`<div class="vg">${g.emo?esc(g.emo)+' ':''}${esc(g.title||'')}</div>`;
+    (g.items||[]).forEach(it=>{ total++; if(it.done)done++;
+      html+=`<div class="vi${it.done?' off':''}"><span class="mk">${it.done?'✓':'○'}</span><span>${esc(it.t)}${it.n?`<span class="vn">${esc(it.n)}</span>`:''}</span></div>`; });
+  });
+  document.getElementById('vsBody').innerHTML = html ? (`<div class="tc-lbl" style="margin:0 0 6px">Взято ${done} из ${total}</div>`+html) : '<div class="trips-empty">Пусто</div>';
+  openVS();
 }
 function go(pk){ active=pk;
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+pk));
@@ -531,8 +675,8 @@ function go(pk){ active=pk;
 function toggleEdit(){ const on=document.body.classList.toggle('editmode');
   document.getElementById('editBtn').textContent=on?'✓ Готово':'✎ Править';
   document.getElementById('hint').textContent=on
-    ?'Режим правки: ✎ изменить, ✕ удалить, ≡ перетащить. Задачи добавляются полем ниже без правки.'
-    :'Нажмите «Править», чтобы добавить или удалить подкатегорию либо удалить задачу.'; }
+    ?'Правка: ✎ изменить, ✕ удалить, ≡ или долгое нажатие — перетащить. Ниже — «＋ Подкатегория» и «＋ Заголовок-раздел».'
+    :'Нажмите на задачу, чтобы открыть её. «Править» — заголовки-разделы, подкатегории и порядок.'; }
 function refresh(){
   let T=0,D=0;
   MODEL.forEach(p=>{ let pt=0,pd=0;
@@ -581,33 +725,46 @@ function countdown(t){
 }
 function renderTripHeader(){
   const t=activeTrip(); const tpl=isTemplate(t);
-  document.getElementById('tripName').textContent = t ? (tpl?'Шаблон':t.location) : 'Поездка';
+  document.getElementById('tripName').textContent = t ? (tpl?(t.location||'Шаблон'):t.location) : 'Поездка';
   const meta=document.getElementById('tripMeta');
   if(!t){ meta.innerHTML=''; return; }
-  if(tpl){ meta.innerHTML='<span class="cd">📋 Основа для новых поездок</span>'; return; }
+  if(tpl){ meta.innerHTML='<span class="cd">📋 Шаблон · основа для поездок</span>'; return; }
   const dates=fmtRange(t.dateFrom,t.dateTo), cd=countdown(t);
   meta.innerHTML = (dates?esc(dates):'') + (dates&&cd?' · ':'') + (cd?`<span class="cd">${esc(cd)}</span>`:'');
 }
-let tripsOpen=false;
-function openTrips(){ tripsOpen=true; renderTrips(); document.getElementById('trips').classList.remove('hidden'); window.scrollTo({top:0}); }
+let tripsOpen=false, tripsTab='trips';
+function openTrips(){ tripsOpen=true; if(isTemplate(activeTrip())) tripsTab='templates'; setTripsTab(tripsTab); document.getElementById('trips').classList.remove('hidden'); window.scrollTo({top:0}); }
 function closeTrips(){ tripsOpen=false; document.getElementById('trips').classList.add('hidden'); }
+function setTripsTab(tab){ tripsTab=tab;
+  document.getElementById('ttTrips').classList.toggle('on',tab==='trips');
+  document.getElementById('ttTpl').classList.toggle('on',tab==='templates');
+  renderTrips();
+}
 function tripProgress(t){ let T=0,D=0; (t.model||[]).forEach(p=>p.groups&&p.groups.forEach(g=>g.items&&g.items.forEach(it=>{T++; if(it.done)D++;}))); return {D,T}; }
 function renderTrips(){
   const list=document.getElementById('tripList');
-  const tpl=getTemplate();
-  const trips=sortTrips(realTrips());
   let html='';
-  if(tpl){
-    const {T}=tripProgress(tpl); const act=tpl.id===STATE.activeTripId;
-    html+=`<div class="trip-card tpl${act?' active':''}" onclick="switchTrip('${tpl.id}')">
-      <div class="tc-top"><span class="tc-name">📋 Шаблон</span>${act?'<span class="tc-badge">открыт</span>':'<span class="tc-badge tpl">основа</span>'}</div>
-      <div class="tc-dates">Основа для новых поездок · ${T} ${plural(T,'пункт','пункта','пунктов')}</div>
-    </div>`;
-  }
-  if(!trips.length){
-    html+='<div class="trips-empty">Пока нет поездок.<br>Нажмите «＋ Новая поездка», чтобы создать первую.</div>';
+  if(tripsTab==='templates'){
+    html+=`<button class="newtrip-btn" onclick="openNewTemplate()">＋ Новый шаблон</button>`;
+    const tpls=getTemplates();
+    if(!tpls.length){ html+='<div class="trips-empty">Пока нет шаблонов.<br>Нажмите «＋ Новый шаблон».</div>'; }
+    else html+=tpls.map(t=>{
+      const {T}=tripProgress(t); const act=t.id===STATE.activeTripId;
+      return `<div class="trip-card tpl${act?' active':''}" onclick="switchTrip('${t.id}')">
+        <div class="tc-top"><span class="tc-name">📋 ${esc(t.location||'Шаблон')}</span>${act?'<span class="tc-badge">открыт</span>':'<span class="tc-badge tpl">основа</span>'}</div>
+        <div class="tc-dates">${T} ${plural(T,'пункт','пункта','пунктов')} · основа для поездок</div>
+        <div class="tc-acts">
+          <button onclick="openEditTrip(event,'${t.id}')">✎ Переименовать</button>
+          <button onclick="duplicateTrip(event,'${t.id}')">⧉ Копия</button>
+          <button class="del" onclick="deleteTrip(event,'${t.id}')">✕ Удалить</button>
+        </div>
+      </div>`;
+    }).join('');
   } else {
-    html+=trips.map(t=>{
+    html+=`<button class="newtrip-btn" onclick="openNewTrip()">＋ Новая поездка</button>`;
+    const trips=sortTrips(realTrips());
+    if(!trips.length){ html+='<div class="trips-empty">Пока нет поездок.<br>Нажмите «＋ Новая поездка», чтобы создать первую.</div>'; }
+    else html+=trips.map(t=>{
       const {D,T}=tripProgress(t); const pct=T?Math.round(D/T*100):0;
       const act=t.id===STATE.activeTripId; const dates=fmtRange(t.dateFrom,t.dateTo);
       return `<div class="trip-card${act?' active':''}" onclick="switchTrip('${t.id}')">
@@ -624,6 +781,12 @@ function renderTrips(){
     }).join('');
   }
   list.innerHTML=html;
+}
+function openNewTemplate(){
+  const name=prompt('Название шаблона:'); if(name===null||!name.trim()) return;
+  const t={id:tid(), kind:'template', location:name.trim(), dateFrom:'', dateTo:'', createdAt:0, model:[]};
+  STATE.trips.push(t); STATE.activeTripId=t.id; syncModelRef(); active=null;
+  save(); closeTrips(); render();
 }
 function switchTrip(id){
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
@@ -652,14 +815,17 @@ function setSource(s){ sheetSource=s;
   document.getElementById('srcTpl').classList.toggle('on',s==='template');
   document.getElementById('srcCopy').classList.toggle('on',s==='copy');
   document.getElementById('fCopy').classList.toggle('hidden',s!=='copy');
+  const tplSel=document.getElementById('fTpl');
+  tplSel.classList.toggle('hidden', !(s==='template' && tplSel.options.length>1));
 }
+function setLocLabel(txt){ const l=document.querySelector('#fLoc'); const sp=l&&l.closest('.fld')&&l.closest('.fld').querySelector('span'); if(sp) sp.textContent=txt; }
 function openNewTrip(){
   sheetMode='new'; sheetTripId=null;
   document.getElementById('sheetTitle').textContent='Новая поездка';
   document.getElementById('sheetSave').textContent='Создать';
-  document.getElementById('fLoc').value='';
-  document.getElementById('fFrom').value='';
-  document.getElementById('fTo').value='';
+  document.getElementById('fLoc').value=''; setLocLabel('Локация');
+  document.getElementById('fFrom').value=''; document.getElementById('fTo').value='';
+  document.querySelector('#sheet .fld-row').style.display='';
   document.getElementById('sheetSource').style.display='';
   const trips=sortTrips(realTrips());
   document.getElementById('fCopy').innerHTML=trips.map(t=>{
@@ -667,19 +833,22 @@ function openNewTrip(){
     return `<option value="${t.id}">${esc(t.location)}${d?' · '+esc(d):''}</option>`;
   }).join('');
   document.getElementById('srcCopy').style.display=trips.length?'':'none';
-  const tpl=getTemplate(); const tplHas=tpl&&tpl.model&&tpl.model.length;
-  document.getElementById('srcTpl').style.display=tpl?'':'none';
+  const tpls=getTemplates();
+  document.getElementById('fTpl').innerHTML=tpls.map(t=>`<option value="${t.id}">${esc(t.location||'Шаблон')}</option>`).join('');
+  const tplHas=tpls.some(t=>t.model&&t.model.length);
+  document.getElementById('srcTpl').style.display=tpls.length?'':'none';
   setSource(tplHas?'template':'empty');
   openSheet();
 }
 function openEditTrip(e,id){ e.stopPropagation();
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
-  sheetMode='edit'; sheetTripId=id;
-  document.getElementById('sheetTitle').textContent='Изменить поездку';
+  sheetMode='edit'; sheetTripId=id; const tpl=isTemplate(t);
+  document.getElementById('sheetTitle').textContent=tpl?'Переименовать шаблон':'Изменить поездку';
   document.getElementById('sheetSave').textContent='Сохранить';
-  document.getElementById('fLoc').value=t.location||'';
+  document.getElementById('fLoc').value=t.location||''; setLocLabel(tpl?'Название шаблона':'Локация');
   document.getElementById('fFrom').value=t.dateFrom||'';
   document.getElementById('fTo').value=t.dateTo||'';
+  document.querySelector('#sheet .fld-row').style.display=tpl?'none':'';
   document.getElementById('sheetSource').style.display='none';
   openSheet();
 }
@@ -696,7 +865,7 @@ function saveSheet(){
     return;
   }
   let model=[];
-  if(sheetSource==='template'){ const tpl=getTemplate(); if(tpl) model=cloneModel(tpl.model); }
+  if(sheetSource==='template'){ const sel=document.getElementById('fTpl').value; const tpl=getTemplates().find(x=>x.id===sel)||getTemplate(); if(tpl) model=cloneModel(tpl.model); }
   else if(sheetSource==='copy'){ const src=STATE.trips.find(x=>x.id===document.getElementById('fCopy').value); if(src) model=cloneModel(src.model); }
   const t=newTrip({location:loc, dateFrom:from, dateTo:to, model});
   STATE.trips.push(t); STATE.activeTripId=t.id; syncModelRef();
@@ -706,17 +875,19 @@ function saveSheet(){
 function duplicateTrip(e,id){ e.stopPropagation();
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
   const copy=newTrip({location:t.location+' (копия)', dateFrom:t.dateFrom, dateTo:t.dateTo, model:cloneModel(t.model)});
+  if(isTemplate(t)){ copy.kind='template'; copy.dateFrom=''; copy.dateTo=''; copy.createdAt=0; }
   STATE.trips.push(copy); save(); renderTrips();
 }
 function deleteTrip(e,id){ e.stopPropagation();
-  const t=STATE.trips.find(x=>x.id===id); if(!t || isTemplate(t)) return;
-  if(!confirm('Удалить поездку «'+t.location+'»? Отменить будет нельзя.')) return;
+  const t=STATE.trips.find(x=>x.id===id); if(!t) return;
+  const tpl=isTemplate(t);
+  if(!confirm('Удалить '+(tpl?'шаблон':'поездку')+' «'+t.location+'»? Отменить будет нельзя.')) return;
   STATE.trips=STATE.trips.filter(x=>x.id!==id);
-  if(STATE.activeTripId===id){ STATE.activeTripId = STATE.trips[0]?STATE.trips[0].id:null; syncModelRef(); active = MODEL[0]?MODEL[0].key:null; }
+  if(STATE.activeTripId===id){ const nxt=realTrips()[0]||STATE.trips[0]; STATE.activeTripId = nxt?nxt.id:null; syncModelRef(); active = MODEL[0]?MODEL[0].key:null; }
   save(); renderTrips(); render();
 }
 /* ===== Редактор категорий/подкатегорий + эмодзи-пикер ===== */
-const EMOJIS=['🧳','🎒','👜','👕','👖','🧦','🧥','👟','🩴','🕶️','🧢','👒','🩱','🧴','🪥','🧼','💊','🩹','🌡️','🧻','🧷','📄','🛂','🎫','💳','💵','🔑','📱','💻','🔌','🔋','🎧','📷','⌚','🔦','🧭','🗺️','☂️','🕯️','🍼','🧸','🐾','🍔','🍎','🥤','☕','🍫','🧂','🍴','🏖️','⛺','🏔️','🚗','✈️','🚢','🛏️','🚿','📖','🏋️','⭐','❤️','🎁','📝','✅','📋','📦'];
+const EMOJIS=['🧳','🎒','👜','👛','🎽','👕','👖','🩳','🧦','🧥','🧤','🧣','👗','👔','👟','👞','🥾','🩴','🕶️','🧢','👒','🎩','🩱','👙','🧴','🪥','🪒','🧼','🧽','💊','💉','🩹','🩺','🌡️','🧻','🧷','🧯','📄','📑','🗂️','🛂','🎫','🪪','💳','💵','💰','🪙','🔑','🗝️','📱','💻','⌨️','🖥️','🔌','🔋','🎧','🎤','📷','📹','🎥','⌚','🔦','🕯️','🧭','🗺️','🧳','☂️','🌂','🕐','⏰','🍼','🧸','🪁','🎮','🐾','🍔','🍎','🍇','🥪','🥤','☕','🍵','🍫','🍬','🧂','🥫','🍴','🔪','🧊','🏖️','🏝️','⛱️','⛺','🏔️','🗻','🚗','🚕','🚌','✈️','🚢','⛵','🚲','🛴','🛏️','🚿','🛁','🧺','📖','📚','✏️','🖊️','🏋️','🏊','⚽','🎾','🏓','🎿','🎣','🔧','🔨','🪛','🧰','🔩','🪜','⭐','🌟','❤️','🔥','🎁','🎈','🎂','📝','✅','☑️','📋','📦','🧾','🏷️','🌍','🧿','🎯','💡','🔒','🛎️'];
 const EMOJI_HINTS=[
   [['докум','паспорт','виза'],'🛂'],[['билет','посад'],'🎫'],
   [['одежд','вещи','гардероб','шмот'],'👕'],[['куртк','пальто','пухов'],'🧥'],[['носк'],'🧦'],
@@ -743,6 +914,8 @@ function closeESheet(){ const s=document.getElementById('esheet'); s.classList.r
 function buildEmojiGrid(){ document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e=>`<button type="button" class="eg${e===esEmoji?' on':''}" onclick="setEmoji('${e}')">${e}</button>`).join(''); }
 function setEmoji(e){ esEmoji=e; document.getElementById('eEmojiCur').textContent=e;
   document.querySelectorAll('#emojiGrid .eg').forEach(b=>b.classList.toggle('on', b.textContent===e)); }
+function showEmojiBlock(on){ document.getElementById('esEmojiBlock').style.display = on?'':'none'; }
+function applyOwnEmoji(){ const v=(document.getElementById('eOwn').value||'').trim(); if(v){ setEmoji(v); document.getElementById('eOwn').value=''; } }
 function suggestEmoji(){
   const sug=emojiSuggest(document.getElementById('eName').value);
   document.getElementById('emojiSug').innerHTML = sug.map(e=>`<button type="button" class="es" onclick="setEmoji('${e}')">${e}</button>`).join('');
@@ -755,6 +928,7 @@ function openCatEditor(pk){
   document.getElementById('eNameLbl').textContent = 'Название категории';
   document.getElementById('eName').value = p ? (p.tab||p.title||'') : '';
   document.getElementById('eEmojiCur').textContent = esEmoji;
+  document.getElementById('eOwn').value=''; showEmojiBlock(true);
   buildEmojiGrid(); suggestEmoji(); openESheet();
 }
 function openGroupEditor(e,pk,gi){
@@ -766,7 +940,18 @@ function openGroupEditor(e,pk,gi){
   document.getElementById('eNameLbl').textContent = 'Название подкатегории';
   document.getElementById('eName').value = g ? (g.title||'') : '';
   document.getElementById('eEmojiCur').textContent = esEmoji;
+  document.getElementById('eOwn').value=''; showEmojiBlock(true);
   buildEmojiGrid(); suggestEmoji(); openESheet();
+}
+function openSubEditor(e,pk,gi){
+  if(e && e.stopPropagation) e.stopPropagation();
+  esMode='sub'; esNew=(gi===null||gi===undefined); esPk=pk; esGi=esNew?null:gi;
+  const p=MODEL.find(x=>x.key===pk); const g=(!esNew&&p)?p.groups[gi]:null;
+  document.getElementById('esTitle').textContent = esNew ? 'Новый заголовок-раздел' : 'Заголовок-раздел';
+  document.getElementById('eNameLbl').textContent = 'Текст заголовка';
+  document.getElementById('eName').value = g ? (g.sub||'') : '';
+  showEmojiBlock(false);
+  openESheet();
 }
 function saveESheet(){
   const name=document.getElementById('eName').value.trim();
@@ -775,6 +960,9 @@ function saveESheet(){
     if(esNew){ const key='c'+Date.now().toString(36)+(uid++);
       MODEL.push({key, icon:esEmoji, tab:name.slice(0,12), title:name, intro:'', groups:[]}); active=key;
     } else { const p=MODEL.find(x=>x.key===esPk); if(p){ p.icon=esEmoji; p.tab=name.slice(0,12); p.title=name; } }
+  } else if(esMode==='sub'){
+    const p=MODEL.find(x=>x.key===esPk);
+    if(p){ if(esNew){ p.groups.push({sub:name}); } else if(p.groups[esGi]){ p.groups[esGi].sub=name; } }
   } else {
     const p=MODEL.find(x=>x.key===esPk);
     if(p){ if(esNew){ p.groups.push({emo:esEmoji, title:name, items:[]}); }
@@ -792,59 +980,140 @@ function deleteCategory(pk){
 function deleteGroup(e,pk,gi){
   if(e && e.stopPropagation) e.stopPropagation();
   const p=MODEL.find(x=>x.key===pk); if(!p||!p.groups[gi]) return;
-  if(!confirm('Удалить подкатегорию «'+(p.groups[gi].title||'')+'» со всеми пунктами?')) return;
+  const g=p.groups[gi];
+  const msg = (typeof g.sub==='string')
+    ? 'Удалить заголовок-раздел «'+(g.sub||'')+'»?'
+    : 'Удалить подкатегорию «'+(g.title||'')+'» со всеми задачами?';
+  if(!confirm(msg)) return;
   p.groups.splice(gi,1); save(); render();
 }
 
-/* ===== Перетаскивание задач (в пределах категории) ===== */
-let drag=null;
-function onHandleDown(e,id){
-  e.preventDefault(); e.stopPropagation();
-  const itemEl=e.target.closest('.item'); const pageEl=itemEl&&itemEl.closest('.page'); if(!itemEl||!pageEl) return;
-  const r=itemEl.getBoundingClientRect();
-  const clone=itemEl.cloneNode(true); clone.className='item drag-clone';
-  clone.style.width=r.width+'px'; clone.style.left=r.left+'px'; clone.style.top=r.top+'px';
-  document.body.appendChild(clone);
-  drag={id, itemEl, pageEl, clone, offY:e.clientY-r.top, target:null};
-  itemEl.classList.add('dragging');
-  window.addEventListener('pointermove', onDragMove, {passive:false});
-  window.addEventListener('pointerup', onDragUp, {once:true});
+/* ===== Перетаскивание (задачи, подкатегории/заголовки, категории) ===== */
+function haptic(){ try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }
+let drag=null, lastPt={x:0,y:0};
+function startLongPress(e, onFire){
+  const sx=e.clientX, sy=e.clientY; lastPt={x:sx,y:sy};
+  const timer=setTimeout(()=>{ cleanup(); haptic(); onFire(); }, 230);
+  const mv=(ev)=>{ lastPt={x:ev.clientX,y:ev.clientY}; if(Math.abs(ev.clientX-sx)>10||Math.abs(ev.clientY-sy)>10){ clearTimeout(timer); cleanup(); } };
+  const up=()=>{ clearTimeout(timer); cleanup(); };
+  function cleanup(){ window.removeEventListener('pointermove',mv); window.removeEventListener('pointerup',up); }
+  window.addEventListener('pointermove',mv,{passive:true});
+  window.addEventListener('pointerup',up);
 }
+function mkClone(el,r){ const c=el.cloneNode(true); c.classList.add('drag-clone');
+  c.style.cssText+=`position:fixed;z-index:200;pointer-events:none;margin:0;width:${r.width}px;left:${r.left}px;top:${r.top}px;opacity:.96;box-shadow:0 12px 30px rgba(40,30,10,.24)`; return c; }
+function attachDrag(){ window.addEventListener('pointermove', onDragMove, {passive:false}); window.addEventListener('pointerup', onDragUp, {once:true}); }
+function autoScroll(y){ const m=80; const cont = (drag&&drag.kind==='cat') ? document.getElementById('profile') : null;
+  if(cont){ if(y<m+70) cont.scrollBy(0,-16); else if(y>window.innerHeight-m) cont.scrollBy(0,16); }
+  else { if(y<m) window.scrollBy(0,-16); else if(y>window.innerHeight-m) window.scrollBy(0,16); } }
 function onDragMove(e){
   if(!drag) return; e.preventDefault();
   drag.clone.style.top=(e.clientY-drag.offY)+'px';
-  const el=document.elementFromPoint(e.clientX, e.clientY);
-  document.querySelectorAll('.drop-before').forEach(x=>x.classList.remove('drop-before'));
-  drag.target=null;
-  if(el){
-    const over=el.closest && el.closest('.item');
-    if(over && over!==drag.itemEl && !over.classList.contains('drag-clone') && drag.pageEl.contains(over)){
-      over.classList.add('drop-before'); drag.target={before:over};
-    } else { const grp=el.closest && el.closest('.group'); if(grp && drag.pageEl.contains(grp)) drag.target={group:grp}; }
-  }
-  const m=70;
-  if(e.clientY<m) window.scrollBy(0,-14);
-  else if(e.clientY>window.innerHeight-m) window.scrollBy(0,14);
+  autoScroll(e.clientY);
+  if(drag.kind==='item') itemDragOver(e.clientX,e.clientY);
+  else if(drag.kind==='group') groupDragOver(e.clientX,e.clientY);
+  else if(drag.kind==='cat') catDragOver(e.clientX,e.clientY);
 }
 function onDragUp(){
   window.removeEventListener('pointermove', onDragMove);
-  document.querySelectorAll('.drop-before').forEach(x=>x.classList.remove('drop-before'));
-  if(drag){ if(drag.clone) drag.clone.remove(); if(drag.itemEl) drag.itemEl.classList.remove('dragging'); applyDrop(); drag=null; }
+  if(!drag) return; const d=drag; drag=null;
+  if(d.clone) d.clone.remove();
+  if(d.ph) d.ph.remove();
+  if(d.el) d.el.style.display='';
+  if(d.kind==='item') applyItemDrop(d);
+  else if(d.kind==='group') applyGroupDrop(d);
+  else if(d.kind==='cat') applyCatDrop(d);
+  justDragged=true; setTimeout(()=>{ justDragged=false; }, 350);
 }
-function applyDrop(){
-  const t=drag.target; if(!t) return;
-  const src=findItem(drag.id); if(!src) return;
-  const from=src.g.items; const si=from.indexOf(src.it); if(si<0) return;
-  from.splice(si,1);
-  if(t.before){
-    const bf=findItem(t.before.dataset.id); if(!bf){ from.splice(si,0,src.it); return; }
-    const arr=bf.g.items; arr.splice(arr.indexOf(bf.it),0,src.it);
-  } else if(t.group){
-    const gk=t.group.dataset.gk; const gi=parseInt(gk.substring(gk.lastIndexOf('-')+1),10);
-    if(src.p.groups[gi]){ (src.p.groups[gi].items||(src.p.groups[gi].items=[])).push(src.it); }
-    else { from.splice(si,0,src.it); return; }
-  } else { from.splice(si,0,src.it); return; }
+/* --- задачи --- */
+function onItemPointerDown(e,id){
+  if(!document.body.classList.contains('editmode')) return;
+  if(e.target.closest('button')||e.target.closest('.box')||e.target.closest('.drag')) return;
+  startLongPress(e, ()=>beginItemDrag(id, lastPt.x, lastPt.y));
+}
+function onHandleDown(e,id){ e.preventDefault(); e.stopPropagation(); beginItemDrag(id, e.clientX, e.clientY); }
+function beginItemDrag(id, x, y){
+  const el=document.querySelector('.item[data-id="'+id+'"]'); if(!el) return;
+  const pageEl=el.closest('.page'); const r=el.getBoundingClientRect();
+  const clone=mkClone(el,r); document.body.appendChild(clone);
+  const ph=document.createElement('div'); ph.className='drag-ph'; ph.style.height=r.height+'px';
+  el.parentNode.insertBefore(ph, el); el.style.display='none';
+  drag={kind:'item', id, el, pageEl, clone, ph, offY:(y||r.top)-r.top, target:null};
+  attachDrag();
+}
+function itemDragOver(x,y){
+  const el=document.elementFromPoint(x,y); if(!el||!el.closest) return;
+  const over=el.closest('.item');
+  if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.style.display!=='none' && drag.pageEl.contains(over)){
+    const rect=over.getBoundingClientRect(); const after=y>rect.top+rect.height/2;
+    over.parentNode.insertBefore(drag.ph, after?over.nextSibling:over);
+    drag.target={refId:over.dataset.id, after}; return;
+  }
+  const grp=el.closest('.group');
+  if(grp && drag.pageEl.contains(grp)){ const box=grp.querySelector('.items'); if(box){ box.insertBefore(drag.ph, box.querySelector('.additem')); drag.target={groupGi:parseInt(grp.dataset.gi,10)}; } }
+}
+function applyItemDrop(d){
+  const src=findItem(d.id); if(!src){ render(); return; }
+  const from=src.g.items; from.splice(from.indexOf(src.it),1);
+  const t=d.target;
+  if(t&&t.refId!=null){ const rf=findItem(t.refId); if(rf){ const arr=rf.g.items; let i=arr.indexOf(rf.it); if(t.after)i++; arr.splice(i,0,src.it); save(); render(); return; } }
+  if(t&&t.groupGi!=null && src.p.groups[t.groupGi]){ const g=src.p.groups[t.groupGi]; (g.items||(g.items=[])).push(src.it); save(); render(); return; }
+  from.push(src.it); render();
+}
+/* --- подкатегории и заголовки-разделы --- */
+function onGroupHandleDown(e,pk,gi){ e.preventDefault(); e.stopPropagation();
+  const el=e.target.closest('.group,.sub'); beginGroupDrag(pk,gi,el,e.clientX,e.clientY); }
+function beginGroupDrag(pk,gi,el,x,y){
+  const p=MODEL.find(z=>z.key===pk); if(!p||!el) return;
+  const pageEl=el.closest('.page'); const r=el.getBoundingClientRect();
+  const clone=mkClone(el,r); document.body.appendChild(clone);
+  const ph=document.createElement('div'); ph.className='drag-ph grp'; ph.style.height=r.height+'px';
+  el.parentNode.insertBefore(ph, el); el.style.display='none';
+  drag={kind:'group', p, srcObj:p.groups[gi], pageEl, el, clone, ph, offY:y-r.top, target:null};
+  attachDrag();
+}
+function groupDragOver(x,y){
+  const el=document.elementFromPoint(x,y); if(!el||!el.closest) return;
+  const over=el.closest('.group')||el.closest('.sub');
+  if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.dataset.gi!=null && drag.pageEl.contains(over)){
+    const rect=over.getBoundingClientRect(); const after=y>rect.top+rect.height/2;
+    over.parentNode.insertBefore(drag.ph, after?over.nextSibling:over);
+    drag.target={refObj: drag.p.groups[parseInt(over.dataset.gi,10)], after};
+  }
+}
+function applyGroupDrop(d){
+  const arr=d.p.groups; const si=arr.indexOf(d.srcObj); if(si<0){ render(); return; } arr.splice(si,1);
+  const t=d.target;
+  if(t&&t.refObj){ let i=arr.indexOf(t.refObj); if(i<0)i=arr.length; else if(t.after)i++; arr.splice(i,0,d.srcObj); }
+  else arr.splice(Math.min(si,arr.length),0,d.srcObj);
   save(); render();
+}
+/* --- категории (в профиле) --- */
+function onCatHandleDown(e,key){ e.preventDefault(); e.stopPropagation();
+  const el=e.target.closest('.prof-cat'); beginCatDrag(key,el,e.clientX,e.clientY); }
+function beginCatDrag(key,el,x,y){
+  if(!el) return; const r=el.getBoundingClientRect();
+  const clone=mkClone(el,r); document.body.appendChild(clone);
+  const ph=document.createElement('div'); ph.className='drag-ph'; ph.style.height=r.height+'px'; ph.style.margin='0 0 8px';
+  el.parentNode.insertBefore(ph, el); el.style.display='none';
+  drag={kind:'cat', srcObj:MODEL.find(z=>z.key===key), container:el.parentNode, el, clone, ph, offY:y-r.top, target:null};
+  attachDrag();
+}
+function catDragOver(x,y){
+  const el=document.elementFromPoint(x,y); if(!el||!el.closest) return;
+  const over=el.closest('.prof-cat');
+  if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.dataset.key && drag.container.contains(over)){
+    const rect=over.getBoundingClientRect(); const after=y>rect.top+rect.height/2;
+    over.parentNode.insertBefore(drag.ph, after?over.nextSibling:over);
+    drag.target={refObj: MODEL.find(z=>z.key===over.dataset.key), after};
+  }
+}
+function applyCatDrop(d){
+  const si=MODEL.indexOf(d.srcObj); if(si<0){ render(); renderProfileCats(); return; } MODEL.splice(si,1);
+  const t=d.target;
+  if(t&&t.refObj){ let i=MODEL.indexOf(t.refObj); if(i<0)i=MODEL.length; else if(t.after)i++; MODEL.splice(i,0,d.srcObj); }
+  else MODEL.splice(Math.min(si,MODEL.length),0,d.srcObj);
+  save(); render(); renderProfileCats();
 }
 
 /* ===== Профиль ===== */
@@ -871,7 +1140,9 @@ function saveProfName(){ setProfNameStore(document.getElementById('profName').va
 function renderProfileCats(){
   const box=document.getElementById('profCats'); if(!box) return;
   if(!MODEL.length){ box.innerHTML='<div class="trips-empty" style="padding:12px 6px">Категорий пока нет. Нажмите «＋ Категория».</div>'; return; }
-  box.innerHTML=MODEL.map(p=>`<div class="prof-cat"><span class="pc-emo">${p.icon||'📋'}</span><span class="pc-name">${esc(p.tab||p.title||'Категория')}</span>
+  box.innerHTML=MODEL.map(p=>`<div class="prof-cat" data-key="${p.key}">
+    <button class="ghandle" onpointerdown="onCatHandleDown(event,'${p.key}')">≡</button>
+    <span class="pc-emo">${p.icon||'📋'}</span><span class="pc-name">${esc(p.tab||p.title||'Категория')}</span>
     <button onclick="openCatEditor('${p.key}')">✎</button>
     <button class="del" onclick="deleteCategory('${p.key}')">✕</button></div>`).join('');
 }
@@ -903,8 +1174,10 @@ function renderProfileCats(){
 
     window.AUTH = {
       signIn: async () => {
+        // Только popup. signInWithRedirect на iOS/standalone даёт ошибку
+        // "missing initial state ... storage-partitioned" — поэтому им не пользуемся.
         try { await signInWithPopup(auth, provider); }
-        catch(e){ try { await signInWithRedirect(auth, provider); } catch(_){} }
+        catch(e){ if(window.onSignInError) window.onSignInError(e && e.code); }
       },
       signOut: () => signOut(auth)
     };

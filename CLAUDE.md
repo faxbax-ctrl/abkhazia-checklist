@@ -100,23 +100,33 @@ STATE = { v:2, activeTripId, trips: [
 
 ## Как обычно просят менять
 - Оформление/цвета — в `<style>` внутри `index.html`.
-- Экраны входа / «нет доступа» — блок `#lock` + функции `showLogin/showDenied`.
-- Логика галочек/пунктов — функции `toggleItem/editItem/addItem/delItem/render`.
-- Поездки — экран `#trips` + `renderTrips/switchTrip/openNewTrip/saveSheet/`
-  `duplicateTrip/deleteTrip`; bottom-sheet `#sheet`.
-- Категории — добавляются/меняются через **Профиль** (`openCatEditor/deleteCategory`,
-  список в `renderProfileCats`), НЕ на странице списка. Подкатегории — в режиме «Править»
-  (`openGroupEditor/deleteGroup`, кнопка «＋ Подкатегория»). Эмодзи-пикер — bottom-sheet
-  `#esheet`, `EMOJIS`, `EMOJI_HINTS`, `emojiSuggest` (умная подсказка, офлайн).
-- Задачи — добавляются полем «＋ Добавить задачу» **без «Править»** (`addKey`, Enter);
-  комментарий (пометка) — кнопка 💬 (`addComment`); удаление/правка текста — в «Править»
-  (`delItem/editItem`). Выполненные сортируются вниз подкатегории при рендере.
-  Перетаскивание задач в пределах категории — `onHandleDown/onDragMove/applyDrop` (ручка ≡).
-- Профиль — экран `#profile`: имя (localStorage `prof_<uid>`, `getProfName/saveProfName`),
-  управление категориями, Logout (`doSignOut`). Аватар в шапке — `updateAvatar`.
-  Первый вход без имени → `openProfile(true)`.
-- Даты — формат `31.07.26 – 9.08.26` (`fmtOne/fmtRange`); отсчёт — `countdown`.
-  Поездки ранжируются от актуальной к прошлым — `sortTrips`.
+- Экраны входа / «нет доступа» — блок `#lock` + `showLogin/showDenied`. Вход — ТОЛЬКО
+  `signInWithPopup` (redirect НЕ используем — на iOS даёт «missing initial state»),
+  `provider.setCustomParameters({prompt:'select_account'})`, ошибка → `onSignInError`.
+- **Задача** = окно (bottom-sheet `#tsheet`, «Todoist-стиль»): Заголовок (`it.t`),
+  Комментарий (`it.n`), Удалить сверху. Тап по задаче → `openTaskEdit`; «＋ Добавить
+  задачу» → `openTaskNew`; сохранение — `saveTaskSheet`. Галочка — ТОЛЬКО по чекбоксу
+  (`boxTap`); превью коммента под задачей 2 строки (`-webkit-line-clamp`). Выполненные
+  сортируются вниз при рендере. «👁 Посмотреть списком» — `openViewSheet` (`#vsheet`).
+- Поездки/шаблоны — экран `#trips` c вкладками (`setTripsTab`, `tripsTab`): «Поездки»
+  (`realTrips`) и «Шаблоны` (`getTemplates`, kind:'template', несколько). Карточки —
+  `renderTrips`; создание/копия/удаление — `openNewTrip/openNewTemplate/openEditTrip/`
+  `saveSheet/duplicateTrip/deleteTrip`; источник новой поездки: Пустой/Шаблон/Копия
+  (`setSource`, `#fTpl`/`#fCopy`).
+- Категории — через **Профиль** (`openCatEditor/deleteCategory`, `renderProfileCats`).
+  Подкатегории и **заголовки-разделы** (`{sub}`) — в «Править»: `openGroupEditor`,
+  `openSubEditor`, `deleteGroup`, кнопки «＋ Подкатегория»/«＋ Заголовок-раздел».
+  Эмодзи-пикер `#esheet` (`EMOJIS` ~140, `EMOJI_HINTS`, `emojiSuggest`, своё эмодзи
+  `applyOwnEmoji`; для sub эмодзи скрыт — `showEmojiBlock`).
+- **Перетаскивание** (в «Править») — движок `drag`/`onDragMove`/`onDragUp` с плейсхолдером
+  `.drag-ph` и вибро (`haptic`): задачи (`onItemPointerDown` долгое нажатие + ручка
+  `onHandleDown` → `applyItemDrop`), подкатегории/заголовки (`onGroupHandleDown` →
+  `applyGroupDrop`), категории в профиле (`onCatHandleDown` → `applyCatDrop`).
+- Профиль — `#profile`: имя (localStorage `prof_<uid>`, `getProfName/saveProfName`),
+  категории (правка/удаление/порядок), Logout. Аватар — `updateAvatar`. Первый вход
+  без имени → `openProfile(true)`.
+- Даты — формат `31.07.26 – 9.08.26` (`fmtOne/fmtRange`); отсчёт — `countdown`;
+  ранжирование поездок актуальная→прошлые — `sortTrips`.
 - Нижняя навигация — макс. 6 категорий в ряд, дальше горизонтальная прокрутка;
   активная вкладка жирная с подсветкой.
 - Синхронизация — `pushCloud/startCloud` + модуль Firebase внизу файла.
