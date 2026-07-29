@@ -51,7 +51,15 @@
   body.editmode .editbtn{background:var(--accent); border-color:var(--accent); color:#fff}
   .bar{height:8px; background:var(--line); border-radius:99px; margin-top:11px; overflow:hidden}
   .bar > i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .35s ease}
-  .bar-lbl{font-size:11px; color:var(--muted); margin-top:6px; font-weight:600}
+  .bar-lbl{font-size:11px; color:var(--muted); font-weight:600}
+  .bar-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px}
+  .donetoggle{border:0; background:none; font-family:inherit; font-size:11.5px; font-weight:700; color:var(--accent); cursor:pointer; padding:2px 0; flex:none; white-space:nowrap}
+  .donetoggle:active{opacity:.6}
+  .donetoggle.hidden{display:none}
+  .hbtn{width:34px; height:34px; flex:none; border:1px solid var(--line); background:var(--card); color:var(--muted); border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0}
+  .hbtn svg{width:19px; height:19px}
+  .hbtn:active{background:var(--bg)}
+  body.editmode #editBtn{background:var(--accent); border-color:var(--accent); color:#fff}
   nav{position:fixed; bottom:0; left:0; right:0; z-index:30; display:flex; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; background:var(--card); border-top:1px solid var(--line); box-shadow:0 -2px 12px rgba(60,50,30,.06); padding-bottom:env(safe-area-inset-bottom)}
   nav::-webkit-scrollbar{display:none}
   nav button{flex:1 0 auto; min-width:calc(100%/6); border:0; background:none; padding:7px 2px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-family:inherit; position:relative}
@@ -125,7 +133,7 @@
   /* ---- Заголовок-поездка ---- */
   .trip-title{display:flex; align-items:center; gap:6px; border:0; background:none; font-family:inherit; color:var(--ink); font-size:18px; font-weight:700; letter-spacing:-.2px; padding:0; cursor:pointer; max-width:72vw; overflow:hidden}
   .trip-title #tripName{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .trip-title .chev-d{font-size:12px; color:var(--muted); font-weight:700; flex:none}
+  .trip-title .chev-d{font-size:15px; line-height:1; color:var(--muted); font-weight:700; flex:none; margin-top:1px}
   .trip-meta{font-size:11.5px; color:var(--muted); font-weight:600; margin-top:4px; min-height:14px}
   .trip-meta .cd{color:var(--accent)}
   /* ---- Экран поездок ---- */
@@ -149,8 +157,8 @@
   .tc-bar > i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px}
   .tc-lbl{font-size:11px; color:var(--muted); font-weight:600; margin-top:6px}
   .tc-acts{display:flex; gap:6px; margin-top:11px}
-  .tc-acts button{flex:1; border:1px solid var(--line); background:#fff; color:var(--muted); font-family:inherit; font-size:12px; font-weight:700; padding:8px; border-radius:9px; cursor:pointer}
-  .tc-acts button.del{color:var(--red); border-color:#e6cfc9}
+  .tc-acts button{flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; border:1px solid var(--line); background:#fff; color:var(--muted); font-family:inherit; font-size:12px; font-weight:700; padding:8px 6px; border-radius:9px; cursor:pointer}
+  .tc-acts button.del{color:var(--red); border-color:#e6cfc9; flex:none; min-width:38px; padding-left:0; padding-right:0}
   .trips-empty{text-align:center; color:var(--muted); font-size:13px; padding:30px 12px; line-height:1.55}
   /* ---- Bottom sheet (новая/изменить поездка) ---- */
   .sheet-back{position:fixed; inset:0; z-index:90; background:rgba(30,25,15,.35); display:flex; align-items:flex-end; justify-content:center; opacity:0; transition:opacity .2s ease}
@@ -220,8 +228,14 @@
   .fld textarea{width:100%; border:1.5px solid var(--line); background:#fff; border-radius:11px; padding:12px 13px; font-family:inherit; font-size:15px; color:var(--ink); line-height:1.4; resize:vertical; min-height:88px}
   .fld textarea:focus{outline:none; border-color:var(--accent)}
   /* ---- Перетаскивание: плейсхолдер-«разрыв» ---- */
-  .drag-ph{margin:2px 6px; border:1.5px dashed var(--accent); border-radius:11px; background:var(--accent-soft); transition:height .12s ease}
+  .drag-ph{margin:2px 6px; border:1.5px dashed var(--accent); border-radius:11px; background:var(--accent-soft); pointer-events:none}
   .drag-ph.grp{margin:0 0 14px; min-height:54px}
+  .drag-ph.tplph{margin:0 0 12px}
+  body.dragging{ -webkit-user-select:none; user-select:none }
+  body.editmode .item, body.editmode .group, body.editmode .sub, .prof-cat, .trip-card{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
+  body.noscroll{overflow:hidden}
+  .sheet-card, .vlist, .emoji-grid{ overscroll-behavior:contain }
+  .trip-card .ghandle{display:flex; margin-right:2px}
   /* ---- Ручка перетаскивания у подкатегорий и категорий ---- */
   .ghandle{display:none; width:28px; height:28px; flex:none; align-items:center; justify-content:center; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--muted); font-size:13px; touch-action:none; cursor:grab; padding:0; user-select:none}
   body.editmode .ghandle{display:flex}
@@ -239,7 +253,7 @@
   .viewcat{display:flex; align-items:center; justify-content:center; gap:7px; width:100%; border:1px solid var(--line); background:var(--card); color:var(--accent); font-family:inherit; font-weight:700; font-size:13px; padding:10px; border-radius:12px; cursor:pointer; margin-bottom:12px}
   .viewcat:active{background:var(--accent-soft)}
   /* ---- Окно «Посмотреть списком» ---- */
-  .vlist{max-height:64vh; overflow-y:auto; -webkit-overflow-scrolling:touch}
+  .vlist{-webkit-overflow-scrolling:touch}
   .vlist .vg{font-weight:800; font-size:13px; color:var(--accent); margin:14px 0 6px; text-transform:uppercase; letter-spacing:.3px}
   .vlist .vg:first-child{margin-top:0}
   .vlist .vi{display:flex; gap:8px; align-items:flex-start; padding:6px 0; font-size:14.5px; line-height:1.35; border-bottom:1px solid var(--line)}
@@ -281,15 +295,19 @@
 <div id="app" style="display:none">
   <header>
     <div class="h-row">
-      <button class="trip-title" onclick="openTrips()"><span>🧳</span><span id="tripName">Поездка</span><span class="chev-d">▾</span></button>
+      <button class="trip-title" onclick="openTrips()"><span id="tripName">Поездка</span><span class="chev-d">▾</span></button>
       <div class="h-right">
-        <button class="editbtn" id="editBtn" onclick="toggleEdit()">✎ Править</button>
+        <button class="hbtn" id="viewBtn" onclick="openViewCurrent()" aria-label="Показать списком" title="Показать списком"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
+        <button class="hbtn" id="editBtn" onclick="toggleEdit()" aria-label="Править" title="Править"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
         <button class="prof-avatar" id="profBtn" onclick="openProfile(false)">👤</button>
       </div>
     </div>
     <div class="trip-meta" id="tripMeta"></div>
     <div class="bar"><i id="totalBar"></i></div>
-    <div class="bar-lbl" id="totalLbl">—</div>
+    <div class="bar-row">
+      <span class="bar-lbl" id="totalLbl">—</span>
+      <button class="donetoggle hidden" id="doneToggle" onclick="toggleHideDone()">Скрыть выполненные</button>
+    </div>
   </header>
   <main>
     <div id="pages"></div>
@@ -481,7 +499,8 @@ function getTemplate(){ return STATE.trips.find(t=>t.kind==='template'); }
 function getTemplates(){ return STATE.trips.filter(t=>t.kind==='template'); }
 function realTrips(){ return STATE.trips.filter(t=>t.kind!=='template'); }
 function isTemplate(t){ return !!t && t.kind==='template'; }
-/* Шаблон существует всегда. При первом создании — заполняется из текущего/первого списка. */
+/* (Не используется автоматически — все шаблоны равны, создаются вручную.)
+   Оставлено как хелпер: заполняет шаблон из текущего/первого списка. */
 function ensureTemplate(){
   if(getTemplate()) return;
   const seedFrom = realTrips().find(t=>t.id===STATE.activeTripId) || realTrips()[0];
@@ -490,7 +509,7 @@ function ensureTemplate(){
 }
 function activeTrip(){ return STATE.trips.find(t=>t.id===STATE.activeTripId) || realTrips()[0] || STATE.trips[0] || null; }
 function syncModelRef(){ const t=activeTrip(); if(t) STATE.activeTripId=t.id; MODEL = t ? t.model : []; }
-function normalize(){ ensureTemplate(); syncModelRef(); }
+function normalize(){ syncModelRef(); }
 function load(){ try{const s=localStorage.getItem(KEY); if(s){ STATE=migrate(JSON.parse(s)); normalize(); return; }}catch(e){} STATE=freshState(); normalize(); }
 function save(){ localUpdatedAt=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(STATE)); localStorage.setItem(KEY+"_ts",String(localUpdatedAt));}catch(e){} pushCloud(); }
 load();
@@ -530,6 +549,8 @@ const CHECK='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" strok
 const pagesEl=document.getElementById('pages');
 const tabsEl=document.getElementById('tabs');
 let active = MODEL[0] ? MODEL[0].key : null;
+let hideDone=false; try{ hideDone=localStorage.getItem('hide_done')==='1'; }catch(e){}
+function toggleHideDone(){ hideDone=!hideDone; try{ localStorage.setItem('hide_done', hideDone?'1':'0'); }catch(e){} render(); }
 const openState={};
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
@@ -554,7 +575,7 @@ function render(){
   MODEL.forEach(p=>{
     const page=document.createElement('div');
     page.className='page'+(p.key===active?' on':''); page.id='page-'+p.key;
-    let html=`<button class="viewcat" onclick="openViewSheet('${p.key}')">👁 Посмотреть списком</button>`;
+    let html='';
     p.groups.forEach((g,gi)=>{
       if(typeof g.sub==='string'){
         html+=`<div class="sub" data-gi="${gi}"><span class="sub-tx">${esc(g.sub)}</span>
@@ -577,7 +598,9 @@ function render(){
           </span>
           <span class="cnt" id="cnt-${gk}"></span><span class="chev">▼</span>
         </div><div class="items">`;
-      const disp=g.items.slice().sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+      let disp=g.items.slice();
+      if(hideDone) disp=disp.filter(it=>!it.done);
+      else disp.sort((a,b)=>(a.done?1:0)-(b.done?1:0));
       disp.forEach(it=>{
         const note=it.n?`<span class="note">${esc(it.n)}</span>`:'';
         html+=`<div class="item${it.done?' checked':''}" data-id="${it.id}" data-gi="${gi}" onpointerdown="onItemPointerDown(event,'${it.id}')">
@@ -617,8 +640,9 @@ function delItem(e,id){ e.stopPropagation(); const f=findItem(id); if(!f) return
 
 /* ---- Окно задачи (Todoist-стиль) ---- */
 let tsMode='new', tsId=null, tsPk=null, tsGi=null;
-function openTS(){ const s=document.getElementById('tsheet'); s.classList.remove('hidden'); requestAnimationFrame(()=>s.classList.add('show')); }
-function closeTaskSheet(){ const s=document.getElementById('tsheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
+function lockScroll(on){ document.body.classList.toggle('noscroll', on); }
+function openTS(){ const s=document.getElementById('tsheet'); s.classList.remove('hidden'); lockScroll(true); requestAnimationFrame(()=>s.classList.add('show')); }
+function closeTaskSheet(){ const s=document.getElementById('tsheet'); s.classList.remove('show'); lockScroll(false); setTimeout(()=>s.classList.add('hidden'),220); }
 function openTaskEdit(id){
   if(justDragged) return;
   const f=findItem(id); if(!f) return;
@@ -642,7 +666,7 @@ function saveTaskSheet(){
   const n=document.getElementById('tsNote').value.trim();
   if(!t){ document.getElementById('tsName').focus(); return; }
   if(tsMode==='edit'){ const f=findItem(tsId); if(f){ f.it.t=t; f.it.n=n; } }
-  else { const p=MODEL.find(x=>x.key===tsPk); if(p&&p.groups[tsGi]){ (p.groups[tsGi].items||(p.groups[tsGi].items=[])).push({id:nid(),t,n,done:false}); } }
+  else { const p=MODEL.find(x=>x.key===tsPk); if(p&&p.groups[tsGi]){ (p.groups[tsGi].items||(p.groups[tsGi].items=[])).unshift({id:nid(),t,n,done:false}); } }
   save(); closeTaskSheet(); render();
 }
 function deleteTaskFromSheet(){
@@ -654,8 +678,8 @@ function deleteTaskFromSheet(){
 }
 
 /* ---- Окно «Посмотреть списком» ---- */
-function openVS(){ const s=document.getElementById('vsheet'); s.classList.remove('hidden'); requestAnimationFrame(()=>s.classList.add('show')); }
-function closeViewSheet(){ const s=document.getElementById('vsheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
+function openVS(){ const s=document.getElementById('vsheet'); s.classList.remove('hidden'); lockScroll(true); requestAnimationFrame(()=>s.classList.add('show')); }
+function closeViewSheet(){ const s=document.getElementById('vsheet'); s.classList.remove('show'); lockScroll(false); setTimeout(()=>s.classList.add('hidden'),220); }
 function openViewSheet(pk){
   const p=MODEL.find(x=>x.key===pk); if(!p) return;
   document.getElementById('vsTitle').textContent=(p.icon?p.icon+' ':'')+(p.tab||p.title||'Список');
@@ -672,8 +696,8 @@ function openViewSheet(pk){
 function go(pk){ active=pk;
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+pk));
   [...tabsEl.children].forEach(b=>b.classList.toggle('on',b.dataset.p===pk)); window.scrollTo({top:0}); }
+function openViewCurrent(){ if(active) openViewSheet(active); }
 function toggleEdit(){ const on=document.body.classList.toggle('editmode');
-  document.getElementById('editBtn').textContent=on?'✓ Готово':'✎ Править';
   document.getElementById('hint').textContent=on
     ?'Правка: ✎ изменить, ✕ удалить, ≡ или долгое нажатие — перетащить. Ниже — «＋ Подкатегория» и «＋ Заголовок-раздел».'
     :'Нажмите на задачу, чтобы открыть её. «Править» — заголовки-разделы, подкатегории и порядок.'; }
@@ -692,6 +716,9 @@ function refresh(){
     else{dot.textContent='✓'; dot.style.display=pt>0?'flex':'none'; btn.classList.add('done');} });
   document.getElementById('totalBar').style.width=(T?D/T*100:0)+'%';
   document.getElementById('totalLbl').textContent=`${D} из ${T} · ${T?Math.round(D/T*100):0}%`;
+  const dt=document.getElementById('doneToggle');
+  if(dt){ dt.textContent = hideDone ? ('Показать выполненные'+(D?` (${D})`:'')) : 'Скрыть выполненные';
+    dt.classList.toggle('hidden', D===0 && !hideDone); }
 }
 
 /* ================= ПОЕЗДКИ ================= */
@@ -750,13 +777,13 @@ function renderTrips(){
     if(!tpls.length){ html+='<div class="trips-empty">Пока нет шаблонов.<br>Нажмите «＋ Новый шаблон».</div>'; }
     else html+=tpls.map(t=>{
       const {T}=tripProgress(t); const act=t.id===STATE.activeTripId;
-      return `<div class="trip-card tpl${act?' active':''}" onclick="switchTrip('${t.id}')">
-        <div class="tc-top"><span class="tc-name">📋 ${esc(t.location||'Шаблон')}</span>${act?'<span class="tc-badge">открыт</span>':'<span class="tc-badge tpl">основа</span>'}</div>
-        <div class="tc-dates">${T} ${plural(T,'пункт','пункта','пунктов')} · основа для поездок</div>
+      return `<div class="trip-card tpl${act?' active':''}" data-tpl="${t.id}" onclick="switchTrip('${t.id}')">
+        <div class="tc-top"><button class="ghandle" onpointerdown="onTplHandleDown(event,'${t.id}')">≡</button><span class="tc-name">📋 ${esc(t.location||'Шаблон')}</span>${act?'<span class="tc-badge">открыт</span>':''}</div>
+        <div class="tc-dates">${T} ${plural(T,'пункт','пункта','пунктов')}</div>
         <div class="tc-acts">
           <button onclick="openEditTrip(event,'${t.id}')">✎ Переименовать</button>
           <button onclick="duplicateTrip(event,'${t.id}')">⧉ Копия</button>
-          <button class="del" onclick="deleteTrip(event,'${t.id}')">✕ Удалить</button>
+          <button class="del" onclick="deleteTrip(event,'${t.id}')">✕</button>
         </div>
       </div>`;
     }).join('');
@@ -775,7 +802,8 @@ function renderTrips(){
         <div class="tc-acts">
           <button onclick="openEditTrip(event,'${t.id}')">✎ Изменить</button>
           <button onclick="duplicateTrip(event,'${t.id}')">⧉ Копия</button>
-          <button class="del" onclick="deleteTrip(event,'${t.id}')">✕ Удалить</button>
+          <button onclick="makeTemplateFromTrip(event,'${t.id}')">📋 Шаблон</button>
+          <button class="del" onclick="deleteTrip(event,'${t.id}')">✕</button>
         </div>
       </div>`;
     }).join('');
@@ -784,11 +812,20 @@ function renderTrips(){
 }
 function openNewTemplate(){
   const name=prompt('Название шаблона:'); if(name===null||!name.trim()) return;
-  const t={id:tid(), kind:'template', location:name.trim(), dateFrom:'', dateTo:'', createdAt:0, model:[]};
-  STATE.trips.push(t); STATE.activeTripId=t.id; syncModelRef(); active=null;
+  const t={id:tid(), kind:'template', location:name.trim(), dateFrom:'', dateTo:'', createdAt:Date.now(), model:[]};
+  STATE.trips.unshift(t); STATE.activeTripId=t.id; syncModelRef(); active=null;
   save(); closeTrips(); render();
 }
+/* Создать шаблон из существующей поездки (галочки сброшены). Новый — вверху списка шаблонов. */
+function makeTemplateFromTrip(e,id){ e.stopPropagation();
+  const src=STATE.trips.find(x=>x.id===id); if(!src) return;
+  const t={id:tid(), kind:'template', location:src.location||'Шаблон', dateFrom:'', dateTo:'', createdAt:Date.now(), model:cloneModel(src.model)};
+  STATE.trips.unshift(t);
+  save(); tripsTab='templates'; setTripsTab('templates');
+  alert('Шаблон «'+t.location+'» создан. Он на вкладке «Шаблоны».');
+}
 function switchTrip(id){
+  if(justDragged) return;
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
   STATE.activeTripId=id; syncModelRef();
   active = MODEL[0] ? MODEL[0].key : null;
@@ -808,8 +845,8 @@ function cloneModel(model){
 }
 /* --- Bottom sheet: новая / изменить поездку --- */
 let sheetMode='new', sheetTripId=null, sheetSource='empty';
-function openSheet(){ const s=document.getElementById('sheet'); s.classList.remove('hidden'); requestAnimationFrame(()=>s.classList.add('show')); }
-function closeSheet(){ const s=document.getElementById('sheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
+function openSheet(){ const s=document.getElementById('sheet'); s.classList.remove('hidden'); lockScroll(true); requestAnimationFrame(()=>s.classList.add('show')); }
+function closeSheet(){ const s=document.getElementById('sheet'); s.classList.remove('show'); lockScroll(false); setTimeout(()=>s.classList.add('hidden'),220); }
 function setSource(s){ sheetSource=s;
   document.getElementById('srcEmpty').classList.toggle('on',s==='empty');
   document.getElementById('srcTpl').classList.toggle('on',s==='template');
@@ -909,8 +946,8 @@ function emojiSuggest(name){
   return res.slice(0,7);
 }
 let esMode='cat', esPk=null, esGi=null, esNew=false, esEmoji='📋';
-function openESheet(){ const s=document.getElementById('esheet'); s.classList.remove('hidden'); requestAnimationFrame(()=>s.classList.add('show')); }
-function closeESheet(){ const s=document.getElementById('esheet'); s.classList.remove('show'); setTimeout(()=>s.classList.add('hidden'),220); }
+function openESheet(){ const s=document.getElementById('esheet'); s.classList.remove('hidden'); lockScroll(true); requestAnimationFrame(()=>s.classList.add('show')); }
+function closeESheet(){ const s=document.getElementById('esheet'); s.classList.remove('show'); lockScroll(false); setTimeout(()=>s.classList.add('hidden'),220); }
 function buildEmojiGrid(){ document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e=>`<button type="button" class="eg${e===esEmoji?' on':''}" onclick="setEmoji('${e}')">${e}</button>`).join(''); }
 function setEmoji(e){ esEmoji=e; document.getElementById('eEmojiCur').textContent=e;
   document.querySelectorAll('#emojiGrid .eg').forEach(b=>b.classList.toggle('on', b.textContent===e)); }
@@ -988,34 +1025,47 @@ function deleteGroup(e,pk,gi){
   p.groups.splice(gi,1); save(); render();
 }
 
-/* ===== Перетаскивание (задачи, подкатегории/заголовки, категории) ===== */
+/* ===== Перетаскивание (задачи, подкатегории/заголовки, категории, шаблоны) =====
+   Клон двигается через transform (GPU, без reflow), проверка позиции — раз в кадр
+   (rAF) и только при реальной смене места (защита от дребезга/мельтешения).
+   Выделение текста и callout отключаются на время перетаскивания. */
 function haptic(){ try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }
-let drag=null, lastPt={x:0,y:0};
+function clearSel(){ try{ const s=window.getSelection&&window.getSelection(); if(s&&s.removeAllRanges) s.removeAllRanges(); }catch(e){} }
+let drag=null, lastPt={x:0,y:0}, dragRaf=false, dragPt={x:0,y:0};
 function startLongPress(e, onFire){
   const sx=e.clientX, sy=e.clientY; lastPt={x:sx,y:sy};
   const timer=setTimeout(()=>{ cleanup(); haptic(); onFire(); }, 230);
-  const mv=(ev)=>{ lastPt={x:ev.clientX,y:ev.clientY}; if(Math.abs(ev.clientX-sx)>10||Math.abs(ev.clientY-sy)>10){ clearTimeout(timer); cleanup(); } };
+  const mv=(ev)=>{ lastPt={x:ev.clientX,y:ev.clientY}; if(Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8){ clearTimeout(timer); cleanup(); } };
   const up=()=>{ clearTimeout(timer); cleanup(); };
-  function cleanup(){ window.removeEventListener('pointermove',mv); window.removeEventListener('pointerup',up); }
+  function cleanup(){ window.removeEventListener('pointermove',mv); window.removeEventListener('pointerup',up); window.removeEventListener('pointercancel',up); }
   window.addEventListener('pointermove',mv,{passive:true});
-  window.addEventListener('pointerup',up);
+  window.addEventListener('pointerup',up); window.addEventListener('pointercancel',up);
 }
 function mkClone(el,r){ const c=el.cloneNode(true); c.classList.add('drag-clone');
-  c.style.cssText+=`position:fixed;z-index:200;pointer-events:none;margin:0;width:${r.width}px;left:${r.left}px;top:${r.top}px;opacity:.96;box-shadow:0 12px 30px rgba(40,30,10,.24)`; return c; }
-function attachDrag(){ window.addEventListener('pointermove', onDragMove, {passive:false}); window.addEventListener('pointerup', onDragUp, {once:true}); }
-function autoScroll(y){ const m=80; const cont = (drag&&drag.kind==='cat') ? document.getElementById('profile') : null;
-  if(cont){ if(y<m+70) cont.scrollBy(0,-16); else if(y>window.innerHeight-m) cont.scrollBy(0,16); }
-  else { if(y<m) window.scrollBy(0,-16); else if(y>window.innerHeight-m) window.scrollBy(0,16); } }
+  c.style.cssText+=`position:fixed;z-index:200;pointer-events:none;margin:0;width:${r.width}px;left:${r.left}px;top:${r.top}px;opacity:.97;box-shadow:0 12px 30px rgba(40,30,10,.24);will-change:transform`;
+  return c; }
+function attachDrag(){ window.addEventListener('pointermove', onDragMove, {passive:false}); window.addEventListener('pointerup', onDragUp, {once:true}); window.addEventListener('pointercancel', onDragUp, {once:true}); }
+function autoScroll(y){ const m=80; let cont=null;
+  if(drag&&drag.kind==='cat') cont=document.getElementById('profile');
+  else if(drag&&drag.kind==='tpl') cont=document.getElementById('trips');
+  if(cont){ if(y<m+70) cont.scrollBy(0,-14); else if(y>window.innerHeight-m) cont.scrollBy(0,14); }
+  else { if(y<m) window.scrollBy(0,-14); else if(y>window.innerHeight-m) window.scrollBy(0,14); } }
 function onDragMove(e){
   if(!drag) return; e.preventDefault();
-  drag.clone.style.top=(e.clientY-drag.offY)+'px';
-  autoScroll(e.clientY);
-  if(drag.kind==='item') itemDragOver(e.clientX,e.clientY);
-  else if(drag.kind==='group') groupDragOver(e.clientX,e.clientY);
-  else if(drag.kind==='cat') catDragOver(e.clientX,e.clientY);
+  dragPt={x:e.clientX,y:e.clientY};
+  drag.clone.style.transform='translate3d('+(e.clientX-drag.startX)+'px,'+(e.clientY-drag.startY)+'px,0)';
+  if(dragRaf) return; dragRaf=true;
+  requestAnimationFrame(()=>{ dragRaf=false; if(!drag) return;
+    autoScroll(dragPt.y);
+    if(drag.kind==='item') itemDragOver(dragPt.x,dragPt.y);
+    else if(drag.kind==='group') groupDragOver(dragPt.x,dragPt.y);
+    else if(drag.kind==='cat') catDragOver(dragPt.x,dragPt.y);
+    else if(drag.kind==='tpl') tplDragOver(dragPt.x,dragPt.y);
+  });
 }
 function onDragUp(){
   window.removeEventListener('pointermove', onDragMove);
+  document.body.classList.remove('dragging');
   if(!drag) return; const d=drag; drag=null;
   if(d.clone) d.clone.remove();
   if(d.ph) d.ph.remove();
@@ -1023,8 +1073,15 @@ function onDragUp(){
   if(d.kind==='item') applyItemDrop(d);
   else if(d.kind==='group') applyGroupDrop(d);
   else if(d.kind==='cat') applyCatDrop(d);
+  else if(d.kind==='tpl') applyTplDrop(d);
   justDragged=true; setTimeout(()=>{ justDragged=false; }, 350);
 }
+/* Двигаем плейсхолдер только если он реально должен встать в другое место. */
+function placePh(over, refNode){
+  if(refNode===drag.ph || drag.ph.nextSibling===refNode) return;
+  over.parentNode.insertBefore(drag.ph, refNode);
+}
+function beginDragCommon(){ document.body.classList.add('dragging'); clearSel(); }
 /* --- задачи --- */
 function onItemPointerDown(e,id){
   if(!document.body.classList.contains('editmode')) return;
@@ -1038,7 +1095,8 @@ function beginItemDrag(id, x, y){
   const clone=mkClone(el,r); document.body.appendChild(clone);
   const ph=document.createElement('div'); ph.className='drag-ph'; ph.style.height=r.height+'px';
   el.parentNode.insertBefore(ph, el); el.style.display='none';
-  drag={kind:'item', id, el, pageEl, clone, ph, offY:(y||r.top)-r.top, target:null};
+  beginDragCommon();
+  drag={kind:'item', id, el, pageEl, clone, ph, startX:x, startY:y, target:null};
   attachDrag();
 }
 function itemDragOver(x,y){
@@ -1046,11 +1104,11 @@ function itemDragOver(x,y){
   const over=el.closest('.item');
   if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.style.display!=='none' && drag.pageEl.contains(over)){
     const rect=over.getBoundingClientRect(); const after=y>rect.top+rect.height/2;
-    over.parentNode.insertBefore(drag.ph, after?over.nextSibling:over);
+    placePh(over, after?over.nextSibling:over);
     drag.target={refId:over.dataset.id, after}; return;
   }
   const grp=el.closest('.group');
-  if(grp && drag.pageEl.contains(grp)){ const box=grp.querySelector('.items'); if(box){ box.insertBefore(drag.ph, box.querySelector('.additem')); drag.target={groupGi:parseInt(grp.dataset.gi,10)}; } }
+  if(grp && drag.pageEl.contains(grp)){ const box=grp.querySelector('.items'); if(box){ const add=box.querySelector('.additem'); if(drag.ph.parentNode!==box || drag.ph.nextSibling!==add) box.insertBefore(drag.ph, add); drag.target={groupGi:parseInt(grp.dataset.gi,10)}; } }
 }
 function applyItemDrop(d){
   const src=findItem(d.id); if(!src){ render(); return; }
@@ -1069,7 +1127,8 @@ function beginGroupDrag(pk,gi,el,x,y){
   const clone=mkClone(el,r); document.body.appendChild(clone);
   const ph=document.createElement('div'); ph.className='drag-ph grp'; ph.style.height=r.height+'px';
   el.parentNode.insertBefore(ph, el); el.style.display='none';
-  drag={kind:'group', p, srcObj:p.groups[gi], pageEl, el, clone, ph, offY:y-r.top, target:null};
+  beginDragCommon();
+  drag={kind:'group', p, srcObj:p.groups[gi], pageEl, el, clone, ph, startX:x, startY:y, target:null};
   attachDrag();
 }
 function groupDragOver(x,y){
@@ -1077,7 +1136,7 @@ function groupDragOver(x,y){
   const over=el.closest('.group')||el.closest('.sub');
   if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.dataset.gi!=null && drag.pageEl.contains(over)){
     const rect=over.getBoundingClientRect(); const after=y>rect.top+rect.height/2;
-    over.parentNode.insertBefore(drag.ph, after?over.nextSibling:over);
+    placePh(over, after?over.nextSibling:over);
     drag.target={refObj: drag.p.groups[parseInt(over.dataset.gi,10)], after};
   }
 }
@@ -1096,7 +1155,8 @@ function beginCatDrag(key,el,x,y){
   const clone=mkClone(el,r); document.body.appendChild(clone);
   const ph=document.createElement('div'); ph.className='drag-ph'; ph.style.height=r.height+'px'; ph.style.margin='0 0 8px';
   el.parentNode.insertBefore(ph, el); el.style.display='none';
-  drag={kind:'cat', srcObj:MODEL.find(z=>z.key===key), container:el.parentNode, el, clone, ph, offY:y-r.top, target:null};
+  beginDragCommon();
+  drag={kind:'cat', srcObj:MODEL.find(z=>z.key===key), container:el.parentNode, el, clone, ph, startX:x, startY:y, target:null};
   attachDrag();
 }
 function catDragOver(x,y){
@@ -1104,7 +1164,7 @@ function catDragOver(x,y){
   const over=el.closest('.prof-cat');
   if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.dataset.key && drag.container.contains(over)){
     const rect=over.getBoundingClientRect(); const after=y>rect.top+rect.height/2;
-    over.parentNode.insertBefore(drag.ph, after?over.nextSibling:over);
+    placePh(over, after?over.nextSibling:over);
     drag.target={refObj: MODEL.find(z=>z.key===over.dataset.key), after};
   }
 }
@@ -1114,6 +1174,35 @@ function applyCatDrop(d){
   if(t&&t.refObj){ let i=MODEL.indexOf(t.refObj); if(i<0)i=MODEL.length; else if(t.after)i++; MODEL.splice(i,0,d.srcObj); }
   else MODEL.splice(Math.min(si,MODEL.length),0,d.srcObj);
   save(); render(); renderProfileCats();
+}
+/* --- шаблоны (на экране «Мои списки») --- */
+function onTplHandleDown(e,id){ e.preventDefault(); e.stopPropagation();
+  const el=e.target.closest('.trip-card'); beginTplDrag(id,el,e.clientX,e.clientY); }
+function beginTplDrag(id,el,x,y){
+  if(!el) return; const r=el.getBoundingClientRect();
+  const clone=mkClone(el,r); document.body.appendChild(clone);
+  const ph=document.createElement('div'); ph.className='drag-ph tplph'; ph.style.height=r.height+'px';
+  el.parentNode.insertBefore(ph, el); el.style.display='none';
+  beginDragCommon();
+  drag={kind:'tpl', id, container:el.parentNode, el, clone, ph, startX:x, startY:y, target:null};
+  attachDrag();
+}
+function tplDragOver(x,y){
+  const el=document.elementFromPoint(x,y); if(!el||!el.closest) return;
+  const over=el.closest('.trip-card');
+  if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.dataset.tpl && drag.container.contains(over)){
+    const rect=over.getBoundingClientRect(); const after=y>rect.top+rect.height/2;
+    placePh(over, after?over.nextSibling:over);
+    drag.target={refId:over.dataset.tpl, after};
+  }
+}
+function applyTplDrop(d){
+  const src=STATE.trips.find(t=>t.id===d.id); if(!src){ renderTrips(); return; }
+  STATE.trips=STATE.trips.filter(t=>t!==src);
+  const t=d.target;
+  if(t&&t.refId){ let i=STATE.trips.findIndex(x=>x.id===t.refId); if(i<0)i=STATE.trips.length; else if(t.after)i++; STATE.trips.splice(i,0,src); }
+  else STATE.trips.push(src);
+  save(); renderTrips();
 }
 
 /* ===== Профиль ===== */

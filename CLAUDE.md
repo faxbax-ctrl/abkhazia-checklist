@@ -46,12 +46,15 @@ STATE = { v:2, activeTripId, trips: [
 ```
 - Поездка (`trip`): `location` — название, `dateFrom`/`dateTo` — даты ('ГГГГ-ММ-ДД',
   необязательно), `model` — прежняя структура категорий (страницы → группы → пункты).
-- **Шаблоны**: особые «поездки» с `kind:'template'` (может быть несколько). Первый,
-  автосозданный, имеет `id:'__tpl__'` и заполняется из текущего/первого списка
-  (`ensureTemplate()` гарантирует хотя бы один). Без дат. Живут на вкладке «Шаблоны»
-  экрана `#trips`, создаются `openNewTemplate`, редактируются/дублируются/удаляются как
-  поездки. Доступны как источник «Шаблон» при создании поездки (выбор через `#fTpl`).
-  Хелперы: `getTemplate()` (первый), `getTemplates()` (все), `realTrips()`, `isTemplate()`.
+- **Шаблоны**: особые «поездки» с `kind:'template'` (может быть несколько, **все равны** —
+  «главного»/автосозданного больше НЕТ, `ensureTemplate()` не вызывается). Без дат.
+  Живут на вкладке «Шаблоны» экрана `#trips`, создаются `openNewTemplate` (новый — вверху,
+  `unshift`), из поездки — `makeTemplateFromTrip` (кнопка «📋 Шаблон» на карточке поездки,
+  галочки сброшены, новый вверху), редактируются/дублируются/удаляются как поездки.
+  **Перетаскиваются** ручкой ≡ (`onTplHandleDown`→`applyTplDrop`, `data-tpl`). Доступны
+  как источник «Шаблон» при создании поездки (выбор через `#fTpl`).
+  Хелперы: `getTemplate()` (первый — только как fallback), `getTemplates()` (все),
+  `realTrips()`, `isTemplate()`.
 - Категория = страница (`page` `{key, icon, tab, title, intro, groups}`), где `icon` —
   эмодзи и `tab` — короткая подпись в нижней навигации.
 - Подкатегория = группа (`group` `{emo, title, items}`); бывают также
@@ -107,14 +110,27 @@ STATE = { v:2, activeTripId, trips: [
 
 ## Как обычно просят менять
 - Оформление/цвета — в `<style>` внутри `index.html`.
+- **Верхняя шапка** (`<header>`): слева — название страны + ▾ (`.trip-title`, тап →
+  `openTrips()`); справа три иконки-кнопки `.hbtn`: «Показать списком» (`#viewBtn` →
+  `openViewCurrent`, значок-список, НЕ глаз), «Править» (`#editBtn` → `toggleEdit`,
+  карандаш, в правке подсвечен `body.editmode #editBtn`), профиль (`#profBtn`). Ниже —
+  даты/отсчёт, прогресс-бар и строка `.bar-row`: слева `#totalLbl`, справа тумблер
+  `#doneToggle` (см. ниже).
+- **Скрыть/показать выполненные** — глобальный тумблер `hideDone` (localStorage
+  `hide_done`), `toggleHideDone()`; при `hideDone` в `render()` выполненные пункты
+  скрыты (счётчики/прогресс считают всё). Метку и видимость тумблера ставит `refresh()`.
 - Экраны входа / «нет доступа» — блок `#lock` + `showLogin/showDenied`. Вход — ТОЛЬКО
   `signInWithPopup` (redirect НЕ используем — на iOS даёт «missing initial state»),
   `provider.setCustomParameters({prompt:'select_account'})`, ошибка → `onSignInError`.
 - **Задача** = окно (bottom-sheet `#tsheet`, «Todoist-стиль»): Заголовок (`it.t`),
   Комментарий (`it.n`), Удалить сверху. Тап по задаче → `openTaskEdit`; «＋ Добавить
-  задачу» → `openTaskNew`; сохранение — `saveTaskSheet`. Галочка — ТОЛЬКО по чекбоксу
-  (`boxTap`); превью коммента под задачей 2 строки (`-webkit-line-clamp`). Выполненные
-  сортируются вниз при рендере. «👁 Посмотреть списком» — `openViewSheet` (`#vsheet`).
+  задачу» → `openTaskNew`; сохранение — `saveTaskSheet` (**новая задача — вверх списка,
+  `unshift`**). Галочка — ТОЛЬКО по чекбоксу (`boxTap`); превью коммента под задачей
+  2 строки (`-webkit-line-clamp`). Выполненные сортируются вниз при рендере (если не
+  скрыты `hideDone`). «Показать списком» — `openViewSheet`/`openViewCurrent` (`#vsheet`).
+- **Bottom-sheet и скролл**: при открытии любого окна `lockScroll(true)` вешает
+  `body.noscroll` (блокирует фон), при закрытии снимает; у прокручиваемых окон
+  `overscroll-behavior:contain`, `#vsheet` — один скролл-контейнер (без вложенного).
 - Поездки/шаблоны — экран `#trips` c вкладками (`setTripsTab`, `tripsTab`): «Поездки»
   (`realTrips`) и «Шаблоны` (`getTemplates`, kind:'template', несколько). Карточки —
   `renderTrips`; создание/копия/удаление — `openNewTrip/openNewTemplate/openEditTrip/`
@@ -125,10 +141,15 @@ STATE = { v:2, activeTripId, trips: [
   `openSubEditor`, `deleteGroup`, кнопки «＋ Подкатегория»/«＋ Заголовок-раздел».
   Эмодзи-пикер `#esheet` (`EMOJIS` ~140, `EMOJI_HINTS`, `emojiSuggest`, своё эмодзи
   `applyOwnEmoji`; для sub эмодзи скрыт — `showEmojiBlock`).
-- **Перетаскивание** (в «Править») — движок `drag`/`onDragMove`/`onDragUp` с плейсхолдером
-  `.drag-ph` и вибро (`haptic`): задачи (`onItemPointerDown` долгое нажатие + ручка
-  `onHandleDown` → `applyItemDrop`), подкатегории/заголовки (`onGroupHandleDown` →
-  `applyGroupDrop`), категории в профиле (`onCatHandleDown` → `applyCatDrop`).
+- **Перетаскивание** — движок `drag`/`onDragMove`/`onDragUp` с плейсхолдером `.drag-ph`
+  и вибро (`haptic`). **Плавность:** клон двигается через `transform: translate3d`
+  (без reflow), проверка позиции — раз в кадр (rAF), плейсхолдер переставляется только
+  при реальной смене места (`placePh`); выделение текста/callout выключены на время
+  (`body.dragging` + `clearSel`, `user-select:none` на строках в правке). Виды: задачи
+  (`onItemPointerDown` долгое нажатие + ручка `onHandleDown` → `applyItemDrop`),
+  подкатегории/заголовки (`onGroupHandleDown` → `applyGroupDrop`), категории в профиле
+  (`onCatHandleDown` → `applyCatDrop`), шаблоны на `#trips` (`onTplHandleDown` →
+  `applyTplDrop`).
 - Профиль — `#profile`: имя (localStorage `prof_<uid>`, `getProfName/saveProfName`),
   категории (правка/удаление/порядок), Logout. Аватар — `updateAvatar`. Первый вход
   без имени → `openProfile(true)`.
