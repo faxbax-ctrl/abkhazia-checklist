@@ -142,15 +142,27 @@ STATE = { v:2, activeTripId, trips: [
 - **Перетаскивание** — движок `drag`/`onDragMove`/`onDragUp` с плейсхолдером `.drag-ph`
   и вибро (`haptic`). **Плавность:** клон двигается через `transform: translate3d`
   (без reflow), проверка позиции — раз в кадр (rAF), плейсхолдер переставляется только
-  при реальной смене места (`placePh`); выделение текста/callout выключены на время
-  (`body.dragging` + `clearSel`, `user-select:none` на строках в правке). Виды: задачи
+  при реальной смене места (`placePh`/`placePhAt`); против дребезга: `overPh` (палец
+  над плейсхолдером → ничего не делаем), `midAfter` (мёртвая зона у середины строки),
+  ветка «в конец группы» срабатывает только ниже последней задачи; сдвиг соседей
+  анимируется FLIP (translateY + transition в `placePhAt`); на iOS во время драга
+  глушится нативный скролл (`blockTouchScroll` — не-пассивный `touchmove` c
+  preventDefault, снимается в `onDragUp`); снапшот из облака во время драга не
+  рендерится сразу (`pendingRemoteRender`, применяется в `onDragUp`); выделение
+  текста/callout выключены на время (`body.dragging` + `clearSel`, `user-select:none`
+  на строках в правке). Виды: задачи
   (`onItemPointerDown` долгое нажатие + ручка `onHandleDown` → `applyItemDrop`),
   подкатегории/заголовки (`onGroupHandleDown` → `applyGroupDrop`), категории в профиле
   (`onCatHandleDown` → `applyCatDrop`), шаблоны на `#trips` (`onTplHandleDown` →
   `applyTplDrop`).
 - Профиль — `#profile`: имя (localStorage `prof_<uid>`, `getProfName/saveProfName`),
-  категории (правка/удаление/порядок), Logout. Аватар — `updateAvatar`. Первый вход
+  категории (правка/удаление/порядок), индикатор облачного хранилища
+  (`renderStorage`, `#profStore`), Logout. Аватар — `updateAvatar`. Первый вход
   без имени → `openProfile(true)`.
+- **Лимит хранилища**: весь `STATE` — один документ Firestore (лимит 1 МиБ).
+  `STORE_LIMIT=1000000`; `save()` считает размер (`Blob`), `checkStorage` при ≥80%
+  показывает alert (один раз за сессию, `__storeWarned`). Индикатор — в Профиле.
+  Если упрёмся в лимит — план: шардирование по документу на поездку (см. `migrate()`).
 - Даты — формат `31.07.26 – 9.08.26` (`fmtOne/fmtRange`); отсчёт — `countdown`;
   ранжирование поездок актуальная→прошлые — `sortTrips`.
 - Нижняя навигация — макс. 6 категорий в ряд, дальше горизонтальная прокрутка;
