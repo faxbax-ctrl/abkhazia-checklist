@@ -128,11 +128,12 @@ STATE = { v:2, activeTripId, trips: [
   скрыты `hideDone`). «Показать списком» — `openViewSheet`/`openViewCurrent` (`#vsheet`).
 - **Bottom-sheet и скролл**: `lockScroll(true/false)` — СЧЁТЧИК (`scrollLocks`),
   а не флаг: поверх профиля/поездок может открыться sheet, и его закрытие не должно
-  разблокировать фон раньше времени. Блокируют фон ВСЕ оверлеи: sheets, `#profile`,
-  `#trips` (open/close парные, `close*` защищены от двойного вызова проверкой
-  `.show`/флага; `showLogin` → `resetScrollLocks()`). У прокручиваемых окон
-  `overscroll-behavior:contain` (включая `#profile`/`#trips`), `#vsheet` — один
-  скролл-контейнер (без вложенного).
+  разблокировать фон раньше времени. Блокируют фон ВСЕ оверлеи: sheets — через
+  `openSheetEl`/`closeSheetEl` (синхронный флаг `data-open` защищает от двойного
+  открытия/закрытия, т.к. `.show` ставится через rAF); `#profile`/`#trips` — в своих
+  open/close с проверкой `profileOpen`/`tripsOpen`; `showLogin` → `resetScrollLocks()`.
+  У прокручиваемых окон `overscroll-behavior:contain` (включая `#profile`/`#trips`),
+  `#vsheet` — один скролл-контейнер (без вложенного).
 - Поездки/шаблоны — экран `#trips` c вкладками (`setTripsTab`, `tripsTab`): «Поездки»
   (`realTrips`) и «Шаблоны` (`getTemplates`, kind:'template', несколько). Карточки —
   `renderTrips`; создание/копия/удаление — `openNewTrip/openNewTemplate/openEditTrip/`
