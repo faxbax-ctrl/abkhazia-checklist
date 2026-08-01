@@ -235,7 +235,7 @@
   body.dragging{ -webkit-user-select:none; user-select:none }
   body.editmode .item, body.editmode .group, body.editmode .sub, .prof-cat, .trip-card{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
   body.noscroll{overflow:hidden}
-  .sheet-card, .vlist, .emoji-grid{ overscroll-behavior:contain }
+  .sheet-card, .vlist, .emoji-grid, #profile, #trips{ overscroll-behavior:contain }
   .trip-card .ghandle{display:flex; margin-right:2px}
   /* ---- Ручка перетаскивания у подкатегорий и категорий ---- */
   .ghandle{display:none; width:28px; height:28px; flex:none; align-items:center; justify-content:center; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--muted); font-size:13px; touch-action:none; cursor:grab; padding:0; user-select:none}
@@ -452,7 +452,7 @@ function showLogin(){
   document.getElementById('lock').classList.remove('hidden');
   document.getElementById('app').style.display='none';
   ['profile','trips'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-  profileOpen=false; tripsOpen=false;
+  profileOpen=false; tripsOpen=false; resetScrollLocks();
   document.getElementById('lockMsg').textContent='Войдите, чтобы открыть список';
   document.getElementById('pwErr').textContent='';
   document.getElementById('gsi').style.display='flex';
@@ -658,9 +658,29 @@ function delItem(e,id){ e.stopPropagation(); const f=findItem(id); if(!f) return
 
 /* ---- Окно задачи (Todoist-стиль) ---- */
 let tsMode='new', tsId=null, tsPk=null, tsGi=null;
-function lockScroll(on){ document.body.classList.toggle('noscroll', on); }
-function openTS(){ const s=document.getElementById('tsheet'); s.classList.remove('hidden'); lockScroll(true); requestAnimationFrame(()=>s.classList.add('show')); }
-function closeTaskSheet(){ const s=document.getElementById('tsheet'); s.classList.remove('show'); lockScroll(false); setTimeout(()=>s.classList.add('hidden'),220); }
+/* Счётчик, а не флаг: поверх профиля может открыться bottom-sheet —
+   его закрытие не должно разблокировать фон, пока профиль ещё открыт. */
+let scrollLocks=0;
+function lockScroll(on){
+  scrollLocks=Math.max(0, scrollLocks+(on?1:-1));
+  document.body.classList.toggle('noscroll', scrollLocks>0);
+}
+function resetScrollLocks(){ scrollLocks=0; document.body.classList.remove('noscroll'); }
+/* Открытие/закрытие sheet-окна с парным lockScroll. Флаг data-open ставится
+   синхронно (класс .show появляется только через rAF) — защита от двойного
+   открытия/закрытия, чтобы счётчик блокировки не разъезжался. */
+function openSheetEl(s){
+  if(s.dataset.open==='1') return; s.dataset.open='1';
+  s.classList.remove('hidden'); lockScroll(true);
+  requestAnimationFrame(()=>s.classList.add('show'));
+}
+function closeSheetEl(s){
+  if(s.dataset.open!=='1') return; s.dataset.open='';
+  s.classList.remove('show'); lockScroll(false);
+  setTimeout(()=>{ if(s.dataset.open!=='1') s.classList.add('hidden'); },220);
+}
+function openTS(){ openSheetEl(document.getElementById('tsheet')); }
+function closeTaskSheet(){ closeSheetEl(document.getElementById('tsheet')); }
 function openTaskEdit(id){
   if(justDragged) return;
   const f=findItem(id); if(!f) return;
@@ -696,8 +716,8 @@ function deleteTaskFromSheet(){
 }
 
 /* ---- Окно «Посмотреть списком» ---- */
-function openVS(){ const s=document.getElementById('vsheet'); s.classList.remove('hidden'); lockScroll(true); requestAnimationFrame(()=>s.classList.add('show')); }
-function closeViewSheet(){ const s=document.getElementById('vsheet'); s.classList.remove('show'); lockScroll(false); setTimeout(()=>s.classList.add('hidden'),220); }
+function openVS(){ openSheetEl(document.getElementById('vsheet')); }
+function closeViewSheet(){ closeSheetEl(document.getElementById('vsheet')); }
 function openViewSheet(pk){
   const p=MODEL.find(x=>x.key===pk); if(!p) return;
   document.getElementById('vsTitle').textContent=(p.icon?p.icon+' ':'')+(p.tab||p.title||'Список');
@@ -778,8 +798,8 @@ function renderTripHeader(){
   meta.innerHTML = (dates?esc(dates):'') + (dates&&cd?' · ':'') + (cd?`<span class="cd">${esc(cd)}</span>`:'');
 }
 let tripsOpen=false, tripsTab='trips';
-function openTrips(){ tripsOpen=true; if(isTemplate(activeTrip())) tripsTab='templates'; setTripsTab(tripsTab); document.getElementById('trips').classList.remove('hidden'); window.scrollTo({top:0}); }
-function closeTrips(){ tripsOpen=false; document.getElementById('trips').classList.add('hidden'); }
+function openTrips(){ if(tripsOpen) return; tripsOpen=true; if(isTemplate(activeTrip())) tripsTab='templates'; setTripsTab(tripsTab); document.getElementById('trips').classList.remove('hidden'); lockScroll(true); document.getElementById('trips').scrollTop=0; }
+function closeTrips(){ if(!tripsOpen) return; tripsOpen=false; document.getElementById('trips').classList.add('hidden'); lockScroll(false); }
 function setTripsTab(tab){ tripsTab=tab;
   document.getElementById('ttTrips').classList.toggle('on',tab==='trips');
   document.getElementById('ttTpl').classList.toggle('on',tab==='templates');
@@ -867,8 +887,8 @@ function cloneModel(model){
 }
 /* --- Bottom sheet: новая / изменить поездку --- */
 let sheetMode='new', sheetTripId=null, sheetSource='empty';
-function openSheet(){ const s=document.getElementById('sheet'); s.classList.remove('hidden'); lockScroll(true); requestAnimationFrame(()=>s.classList.add('show')); }
-function closeSheet(){ const s=document.getElementById('sheet'); s.classList.remove('show'); lockScroll(false); setTimeout(()=>s.classList.add('hidden'),220); }
+function openSheet(){ openSheetEl(document.getElementById('sheet')); }
+function closeSheet(){ closeSheetEl(document.getElementById('sheet')); }
 function setSource(s){ sheetSource=s;
   document.getElementById('srcEmpty').classList.toggle('on',s==='empty');
   document.getElementById('srcTpl').classList.toggle('on',s==='template');
@@ -974,8 +994,8 @@ function emojiSuggest(name){
   return res.slice(0,7);
 }
 let esMode='cat', esPk=null, esGi=null, esNew=false, esEmoji='📋';
-function openESheet(){ const s=document.getElementById('esheet'); s.classList.remove('hidden'); lockScroll(true); requestAnimationFrame(()=>s.classList.add('show')); }
-function closeESheet(){ const s=document.getElementById('esheet'); s.classList.remove('show'); lockScroll(false); setTimeout(()=>s.classList.add('hidden'),220); }
+function openESheet(){ openSheetEl(document.getElementById('esheet')); }
+function closeESheet(){ closeSheetEl(document.getElementById('esheet')); }
 function buildEmojiGrid(){ document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e=>`<button type="button" class="eg${e===esEmoji?' on':''}" onclick="setEmoji('${e}')">${e}</button>`).join(''); }
 function setEmoji(e){ esEmoji=e; document.getElementById('eEmojiCur').textContent=e;
   document.querySelectorAll('#emojiGrid .eg').forEach(b=>b.classList.toggle('on', b.textContent===e)); }
@@ -1294,6 +1314,7 @@ function getProfName(){ try{ return localStorage.getItem('prof_'+profUid())||'';
 function setProfNameStore(v){ try{ localStorage.setItem('prof_'+profUid(), v); }catch(e){} }
 function updateAvatar(){ const n=getProfName().trim(); const b=document.getElementById('profBtn'); if(b) b.textContent = n? n[0].toUpperCase() : '👤'; }
 function openProfile(welcome){
+  if(!profileOpen) lockScroll(true);
   profileOpen=true;
   const nm=getProfName() || (welcome && __authedUser && __authedUser.displayName ? __authedUser.displayName : '');
   document.getElementById('profName').value=nm;
@@ -1304,9 +1325,9 @@ function openProfile(welcome){
   const at=activeTrip();
   document.getElementById('profTripName').textContent = isTemplate(at)?'Шаблон':(at?at.location:'поездка');
   renderProfileCats(); renderStorage(); updateAvatar();
-  document.getElementById('profile').classList.remove('hidden'); window.scrollTo({top:0});
+  document.getElementById('profile').classList.remove('hidden'); document.getElementById('profile').scrollTop=0;
 }
-function closeProfile(){ profileOpen=false; document.getElementById('profile').classList.add('hidden'); }
+function closeProfile(){ if(!profileOpen) return; profileOpen=false; document.getElementById('profile').classList.add('hidden'); lockScroll(false); }
 function saveProfName(){ setProfNameStore(document.getElementById('profName').value.trim()); updateAvatar(); }
 function renderStorage(){
   const el=document.getElementById('profStore'); if(!el) return;

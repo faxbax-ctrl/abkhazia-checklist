@@ -126,9 +126,13 @@ STATE = { v:2, activeTripId, trips: [
   `unshift`**). Галочка — ТОЛЬКО по чекбоксу (`boxTap`); превью коммента под задачей
   2 строки (`-webkit-line-clamp`). Выполненные сортируются вниз при рендере (если не
   скрыты `hideDone`). «Показать списком» — `openViewSheet`/`openViewCurrent` (`#vsheet`).
-- **Bottom-sheet и скролл**: при открытии любого окна `lockScroll(true)` вешает
-  `body.noscroll` (блокирует фон), при закрытии снимает; у прокручиваемых окон
-  `overscroll-behavior:contain`, `#vsheet` — один скролл-контейнер (без вложенного).
+- **Bottom-sheet и скролл**: `lockScroll(true/false)` — СЧЁТЧИК (`scrollLocks`),
+  а не флаг: поверх профиля/поездок может открыться sheet, и его закрытие не должно
+  разблокировать фон раньше времени. Блокируют фон ВСЕ оверлеи: sheets, `#profile`,
+  `#trips` (open/close парные, `close*` защищены от двойного вызова проверкой
+  `.show`/флага; `showLogin` → `resetScrollLocks()`). У прокручиваемых окон
+  `overscroll-behavior:contain` (включая `#profile`/`#trips`), `#vsheet` — один
+  скролл-контейнер (без вложенного).
 - Поездки/шаблоны — экран `#trips` c вкладками (`setTripsTab`, `tripsTab`): «Поездки»
   (`realTrips`) и «Шаблоны` (`getTemplates`, kind:'template', несколько). Карточки —
   `renderTrips`; создание/копия/удаление — `openNewTrip/openNewTemplate/openEditTrip/`

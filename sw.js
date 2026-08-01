@@ -1,5 +1,5 @@
 /* Абхазия чек-лист — service worker (офлайн) */
-const CACHE = 'abkhazia-v14';
+const CACHE = 'abkhazia-v15';
 const ASSETS = [
   './',
   './index.html',
