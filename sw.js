@@ -1,5 +1,5 @@
-/* Абхазия чек-лист — service worker (офлайн) */
-const CACHE = 'abkhazia-v15';
+/* «Соберись!» — service worker (офлайн) */
+const CACHE = 'abkhazia-v16';
 const ASSETS = [
   './',
   './index.html',
@@ -8,9 +8,17 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png'
 ];
+/* Firebase SDK (версия зафиксирована в index.html — файлы по этому адресу не меняются).
+   Без них приложение не откроется офлайн: на них держится вход. */
+const SDK_PREFIX = 'https://www.gstatic.com/firebasejs/';
+const SDK = ['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js']
+  .map(f => SDK_PREFIX + '10.12.0/' + f);
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).then(() =>
+    /* SDK — по возможности: если не скачался, установка всё равно проходит */
+    Promise.all(SDK.map(u => fetch(u).then(r => r.ok && c.put(u, r)).catch(() => {})))
+  )).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -21,15 +29,21 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  /* Кэшируем только свои файлы: запросы к Firebase/CDN не трогаем,
-     иначе кэш растёт бесконечно, а на офлайн-ошибку API вернётся index.html */
-  if (new URL(e.request.url).origin !== location.origin) return;
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  const own = url.origin === location.origin;
+  /* Кэшируем только свои файлы и Firebase SDK: запросы к API Firebase не трогаем,
+     иначе кэш растёт бесконечно, а офлайн-ошибка API подменилась бы страницей */
+  if (!own && !req.url.startsWith(SDK_PREFIX)) return;
   e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+    caches.match(req).then(hit => hit || fetch(req).then(res => {
+      /* в кэш — только удачные ответы и без ?v=… (иначе кэш пухнет от каждой «пробивки») */
+      if (res.ok && !(own && url.search)) {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+      }
       return res;
-    }).catch(() => caches.match('./index.html')))
+    }).catch(() => req.mode === 'navigate' ? caches.match('./index.html') : Response.error()))
   );
 });

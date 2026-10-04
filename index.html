@@ -44,14 +44,12 @@
   /* ---- App ---- */
   header{position:sticky; top:0; z-index:20; background:var(--bg); padding:calc(12px + env(safe-area-inset-top)) 16px 9px; border-bottom:1px solid var(--line)}
   .h-row{display:flex; align-items:center; justify-content:space-between; gap:10px}
-  h1{font-size:18px; margin:0; font-weight:700; letter-spacing:-.2px}
   .h-right{display:flex; align-items:center; gap:8px}
-  .date{font-size:11.5px; color:var(--muted); font-weight:600}
-  .editbtn{border:1px solid var(--line); background:var(--card); color:var(--muted); font-family:inherit; font-size:12px; font-weight:700; padding:6px 12px; border-radius:99px; cursor:pointer}
-  body.editmode .editbtn{background:var(--accent); border-color:var(--accent); color:#fff}
   .bar{height:8px; background:var(--line); border-radius:99px; margin-top:11px; overflow:hidden}
   .bar > i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .35s ease}
   .bar-lbl{font-size:11px; color:var(--muted); font-weight:600}
+  .sync-lbl{color:var(--warn)}
+  .sync-lbl.err{color:var(--red); cursor:pointer}
   .bar-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px}
   .donetoggle{border:0; background:none; font-family:inherit; font-size:11.5px; font-weight:700; color:var(--accent); cursor:pointer; padding:2px 0; flex:none; white-space:nowrap}
   .donetoggle:active{opacity:.6}
@@ -98,7 +96,6 @@
   .item.checked .note{color:var(--done); text-decoration:none}
   .sub{font-size:13px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.4px; padding:18px 6px 8px; display:flex; align-items:center; gap:8px}
   .sub::before{content:''; width:16px; height:3px; background:var(--accent); border-radius:2px; opacity:.55}
-  .intro{font-size:12.5px; color:var(--muted); line-height:1.5; padding:2px 6px 10px}
   .loading{font-size:13px; color:var(--muted); text-align:center; padding:40px 12px}
   .acts{display:none; gap:6px; flex:none}
   body.editmode .acts{display:flex}
@@ -106,24 +103,16 @@
   body.editmode .item .box{opacity:.35}
   .act{width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; padding:0}
   .act.del{color:var(--red); border-color:#e6cfc9}
-  /* Кнопка-комментарий (в обычном режиме) */
-  .cmt{display:flex; width:30px; height:30px; flex:none; align-items:center; justify-content:center; border:0; background:none; color:var(--muted); font-size:15px; cursor:pointer; opacity:.5; border-radius:8px; padding:0}
-  .cmt:active{background:var(--bg); opacity:1}
-  body.editmode .cmt{display:none}
   /* Ручка перетаскивания (в режиме правки) */
   .drag{display:none; width:30px; height:30px; flex:none; align-items:center; justify-content:center; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--muted); font-size:15px; touch-action:none; cursor:grab; padding:0; user-select:none}
   body.editmode .drag{display:flex}
   .item.dragging{opacity:.35}
   .drag-clone{position:fixed; z-index:200; pointer-events:none; box-shadow:0 10px 26px rgba(40,30,10,.22); background:var(--card); border:1.5px solid var(--accent); border-radius:11px; margin:0; padding:11px 10px; opacity:.97}
-  .item.drop-before{box-shadow:inset 0 3px 0 -1px var(--accent)}
   /* Добавление задачи — всегда доступно, без «Править» */
   .additem{display:flex; align-items:center; gap:9px; padding:11px 12px; margin:2px 6px 6px; border:1.5px dashed var(--line); border-radius:11px; background:var(--card); cursor:pointer}
   .additem:active{background:var(--accent-soft)}
   .additem .addtx{color:var(--accent); font-weight:700; font-size:14px}
   .additem .plus{font-weight:800; font-size:16px; color:var(--accent); flex:none}
-  .additem input{flex:1; min-width:0; border:0; background:none; font-family:inherit; font-size:14.5px; color:var(--ink); padding:3px 0}
-  .additem input:focus{outline:none}
-  .additem input::placeholder{color:var(--accent); opacity:.7; font-weight:700}
   .newgrp{display:none; align-items:center; gap:8px; padding:11px 12px; margin:4px 4px 14px; border:1.5px dashed var(--accent); border-radius:12px; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; background:var(--card); justify-content:center}
   body.editmode .newgrp{display:flex}
   .foot{text-align:center; padding:8px 0 4px; display:flex; flex-direction:column; gap:8px; align-items:center}
@@ -148,7 +137,6 @@
   .trip-card.active{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft), var(--shadow)}
   .trip-card:active{transform:scale(.995)}
   .trip-card.tpl{border-style:dashed; border-color:var(--accent); background:linear-gradient(180deg,var(--accent-soft),var(--card))}
-  .tc-badge.tpl{color:var(--muted); background:var(--bg)}
   .tc-top{display:flex; align-items:center; gap:8px}
   .tc-name{font-size:16px; font-weight:700; flex:1; letter-spacing:-.2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .tc-badge{font-size:10.5px; font-weight:700; color:var(--accent); background:var(--accent-soft); padding:3px 8px; border-radius:99px; flex:none}
@@ -182,19 +170,11 @@
   .btn-ghost{flex:1; border:1px solid var(--line); background:#fff; color:var(--muted); font-family:inherit; font-weight:700; font-size:15px; padding:13px; border-radius:12px; cursor:pointer}
   .btn-main{flex:2; border:0; background:var(--accent); color:#fff; font-family:inherit; font-weight:700; font-size:15px; padding:13px; border-radius:12px; cursor:pointer}
   .btn-main:active,.btn-ghost:active{opacity:.9}
-  /* ---- Редактор категорий/подкатегорий ---- */
-  .cat-edit{display:none; align-items:center; gap:9px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 12px; margin-bottom:12px; box-shadow:var(--shadow)}
-  body.editmode .cat-edit{display:flex}
-  .cat-edit .ce-emo{font-size:18px; flex:none}
-  .cat-edit .ce-name{flex:1; font-weight:700; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .cat-edit button{width:32px; height:32px; flex:none; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:14px; padding:0}
-  .cat-edit button.del{color:var(--red); border-color:#e6cfc9}
+  /* ---- Действия у подкатегорий (в правке) ---- */
   .g-acts{display:none; gap:6px; margin-left:2px; flex:none}
   body.editmode .g-acts{display:flex}
   .g-acts button{width:28px; height:28px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:12.5px; padding:0}
   .g-acts button.del{color:var(--red); border-color:#e6cfc9}
-  .newcat{display:none; align-items:center; justify-content:center; gap:8px; padding:11px 12px; margin:2px 4px 16px; border:1.5px dashed var(--accent); border-radius:12px; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; background:var(--card)}
-  body.editmode .newcat{display:flex}
   /* ---- Эмодзи-пикер ---- */
   .emoji-cur{display:flex; align-items:center; gap:11px; margin:2px 0 10px}
   .emoji-cur .cur{font-size:28px; width:52px; height:52px; flex:none; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--line); border-radius:12px; background:#fff}
@@ -250,9 +230,6 @@
   .sub-acts button.del{color:var(--red); border-color:#e6cfc9}
   .newsub{display:none; align-items:center; justify-content:center; gap:8px; padding:10px 12px; margin:2px 4px 14px; border:1.5px dashed var(--muted); border-radius:12px; color:var(--muted); font-weight:700; font-size:13px; cursor:pointer; background:var(--card)}
   body.editmode .newsub{display:flex}
-  /* ---- Кнопка «Посмотреть списком» у категории ---- */
-  .viewcat{display:flex; align-items:center; justify-content:center; gap:7px; width:100%; border:1px solid var(--line); background:var(--card); color:var(--accent); font-family:inherit; font-weight:700; font-size:13px; padding:10px; border-radius:12px; cursor:pointer; margin-bottom:12px}
-  .viewcat:active{background:var(--accent-soft)}
   /* ---- Окно «Посмотреть списком» ---- */
   .vlist{-webkit-overflow-scrolling:touch}
   .vlist .vg{font-weight:800; font-size:13px; color:var(--accent); margin:14px 0 6px; text-transform:uppercase; letter-spacing:.3px}
@@ -306,7 +283,7 @@
     <div class="trip-meta" id="tripMeta"></div>
     <div class="bar"><i id="totalBar"></i></div>
     <div class="bar-row">
-      <span class="bar-lbl" id="totalLbl">—</span>
+      <span class="bar-lbl"><span id="totalLbl">—</span><span id="syncLbl" class="sync-lbl" onclick="showSyncInfo()"></span></span>
       <button class="donetoggle hidden" id="doneToggle" onclick="toggleHideDone()">Скрыть выполненные</button>
     </div>
   </header>
@@ -391,7 +368,7 @@
       <span class="fld-lbl">Эмодзи</span>
       <div class="emoji-cur"><span class="cur" id="eEmojiCur">📋</span><span class="txt">Подсказки по названию, вставьте своё эмодзи или выберите из списка.</span></div>
       <div class="emoji-own">
-        <input id="eOwn" type="text" placeholder="Своё эмодзи" maxlength="4" autocomplete="off">
+        <input id="eOwn" type="text" placeholder="Своё эмодзи" maxlength="32" autocomplete="off">
         <button type="button" onclick="applyOwnEmoji()">Поставить</button>
       </div>
       <div id="emojiSug" class="emoji-sug"></div>
@@ -439,43 +416,67 @@
 /* ================= ДОСТУП (только вход через Google) =================
    В коде НЕТ ни списка разрешённых email, ни содержимого списка.
    Кто имеет доступ к данным — решают серверные правила Firestore. */
-function doSignIn(){ document.getElementById('pwErr').textContent=''; if(window.AUTH) window.AUTH.signIn(); }
+function doSignIn(){
+  const err=document.getElementById('pwErr'); err.textContent='';
+  if(window.AUTH) window.AUTH.signIn();
+  else err.textContent='Не удалось загрузить вход — нет связи. Проверьте интернет и откройте приложение заново.';
+}
 function doSignOut(){ if(window.AUTH) window.AUTH.signOut(); }
 window.onSignInError=function(code){
   document.getElementById('pwErr').textContent = (code==='auth/popup-blocked')
     ? 'Разрешите всплывающие окна и нажмите «Войти» ещё раз.'
     : 'Не удалось войти. Нажмите «Войти» ещё раз.';
 };
+/* Firebase-модуль так и не загрузился (нет сети при первом запуске) — скажем об этом */
+setTimeout(()=>{ if(!window.AUTH && !__authedUser) document.getElementById('pwErr').textContent='Не удалось загрузить вход. Проверьте интернет и откройте приложение заново.'; }, 12000);
 
 let __authedUser=null;
-function showLogin(){
-  document.getElementById('lock').classList.remove('hidden');
-  document.getElementById('app').style.display='none';
+/* uid аккаунтов (через запятую), которым облако уже подтвердило доступ на этом устройстве:
+   им список показываем сразу (в том числе офлайн), остальным — после проверки */
+const OK_KEY='abkhazia_ok_uid';
+function okUids(){ return (lsGet(OK_KEY)||'').split(',').filter(Boolean); }
+function appShown(){ return document.getElementById('app').style.display==='block'; }
+function closeOverlays(){
+  ['sheet','esheet','tsheet','vsheet'].forEach(id=>closeSheetEl(document.getElementById(id)));
   ['profile','trips'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   profileOpen=false; tripsOpen=false; resetScrollLocks();
-  document.getElementById('lockMsg').textContent='Войдите, чтобы открыть список';
-  document.getElementById('pwErr').textContent='';
-  document.getElementById('gsi').style.display='flex';
-  document.getElementById('signout').style.display='none';
 }
-function showDenied(email){
+/* Экран-замок: btn — какую кнопку показать ('signin' | 'signout') */
+function showLock(msg, err, btn){
+  closeOverlays();
   document.getElementById('lock').classList.remove('hidden');
   document.getElementById('app').style.display='none';
-  document.getElementById('lockMsg').textContent='Нет доступа'+(email?(' для '+email):'');
-  document.getElementById('pwErr').textContent='Этот аккаунт не в списке. Попросите добавить его.';
-  document.getElementById('gsi').style.display='none';
-  document.getElementById('signout').style.display='block';
+  document.getElementById('lockMsg').textContent=msg;
+  document.getElementById('pwErr').textContent=err||'';
+  document.getElementById('gsi').style.display = btn==='signin'?'flex':'none';
+  document.getElementById('signout').style.display = btn==='signout'?'block':'none';
+}
+function showLogin(){ showLock('Войдите, чтобы открыть список', '', 'signin'); }
+function showChecking(){ showLock('Проверяем доступ…', navigator.onLine===false?'Для первого входа на этом устройстве нужен интернет.':'', 'signout'); }
+function showDenied(email){
+  if(lsGet(OK_KEY)===null) lsSet(OK_KEY,'');   /* больше не доверяем «старому» кэшу на этом устройстве */
+  showLock('Нет доступа'+(email?(' для '+email):''), 'Этот аккаунт не в списке. Попросите добавить его.', 'signout');
 }
 /* Вызывается из Firebase-модуля при изменении статуса входа */
 window.onAuthChange = function(user){
   __authedUser = user;
-  if(user){ showApp(); } else { showLogin(); }
+  stopCloud();
+  if(!user){ showLogin(); return; }
+  const ok=lsGet(OK_KEY);
+  /* ok===null — устройство со старой версией приложения, где список уже был */
+  if(okUids().includes(user.uid) || (ok===null && lsGet(KEY))) showApp(); else showChecking();
+  startCloud();
 };
+function markAccessOk(){
+  const u=__authedUser&&__authedUser.uid, list=okUids();
+  if(u && !list.includes(u)) lsSet(OK_KEY, list.concat(u).join(','));
+  if(!appShown()) showApp();
+}
 function showApp(){
   document.getElementById('lock').classList.add('hidden');
   document.getElementById('app').style.display='block';
-  if(!window.__built){ window.__built=true; render(); registerSW(); startCloud(); }
-  updateAvatar();
+  if(!window.__swReg){ window.__swReg=true; registerSW(); }
+  render(); updateAvatar(); updateSyncUI();
   if(__authedUser && !getProfName()){ openProfile(true); }
 }
 function registerSW(){
@@ -488,6 +489,7 @@ function registerSW(){
 const KEY="abkhazia_v2";
 let uid=1; const nid=()=> 'i'+(Date.now().toString(36))+(uid++);
 function tid(){ return 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function gidNew(){ return 'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function newTrip(o){ o=o||{}; return {id:tid(), location:o.location||'Поездка', dateFrom:o.dateFrom||'', dateTo:o.dateTo||'', createdAt:o.createdAt||Date.now(), model:o.model||[]}; }
 function freshState(){ return {v:2, activeTripId:null, trips:[]}; }
 /* Заворачиваем старый формат (просто массив категорий) в первую поездку. Идемпотентно. */
@@ -496,71 +498,236 @@ function migrate(raw){
   if(raw && raw.v>=2 && Array.isArray(raw.trips)) return raw;
   return freshState();
 }
+/* Короткий детерминированный хэш (FNV-1a) — для id, которые должны совпасть на всех устройствах */
+function hid(s){ let h=0x811c9dc5; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,0x01000193); } return (h>>>0).toString(36); }
+/* У подкатегорий и заголовков-разделов есть id (gid): по нему работают правка, сворачивание,
+   перетаскивание и слияние правок. Старым данным id назначается детерминированно (одинаково
+   на всех устройствах), иначе слияние плодило бы дубли. Идемпотентно. */
+function normalizeIds(st){
+  (st.trips||[]).forEach(t=>{
+    if(!Array.isArray(t.model)) t.model=[];
+    t.model.forEach(p=>{
+      if(!Array.isArray(p.groups)) p.groups=[];
+      const seenG={}, seenI={};
+      p.groups.forEach(g=>{
+        const isSub=typeof g.sub==='string';
+        if(!g.gid || seenG[g.gid]){
+          const base=g.gid || ('g'+hid(p.key+'|'+(isSub?'s:'+g.sub:(g.title||''))));
+          let id=base, k=0; while(seenG[id]) id=base+'_'+(++k); g.gid=id;
+        }
+        seenG[g.gid]=1;
+        if(isSub) return;
+        if(!Array.isArray(g.items)) g.items=[];
+        g.items.forEach(it=>{ if(!it.id){ const base='i'+hid(g.gid+'|'+(it.t||'')); let id=base, k=0; while(seenI[id]) id=base+'_'+(++k); it.id=id; } seenI[it.id]=1; });
+      });
+    });
+  });
+  return st;
+}
+function parseState(s){ if(!s) return freshState(); try{ return normalizeIds(migrate(JSON.parse(s))); }catch(e){ return freshState(); } }
+/* Облачные данные читаются? (повреждённые нельзя сливать — это выглядело бы как «всё удалили») */
+function validData(s){ try{ const r=JSON.parse(s); return Array.isArray(r) || (!!r && r.v>=2 && Array.isArray(r.trips)); }catch(e){ return false; } }
 let STATE, MODEL=[];
-const TPL_ID='__tpl__';
 function getTemplate(){ return STATE.trips.find(t=>t.kind==='template'); }
 function getTemplates(){ return STATE.trips.filter(t=>t.kind==='template'); }
 function realTrips(){ return STATE.trips.filter(t=>t.kind!=='template'); }
 function isTemplate(t){ return !!t && t.kind==='template'; }
-/* (Не используется автоматически — все шаблоны равны, создаются вручную.)
-   Оставлено как хелпер: заполняет шаблон из текущего/первого списка. */
-function ensureTemplate(){
-  if(getTemplate()) return;
-  const seedFrom = realTrips().find(t=>t.id===STATE.activeTripId) || realTrips()[0];
-  const model = (seedFrom && seedFrom.model && seedFrom.model.length) ? cloneModel(seedFrom.model) : [];
-  STATE.trips.push({ id:TPL_ID, kind:'template', location:'Шаблон', dateFrom:'', dateTo:'', createdAt:0, model });
-}
-function activeTrip(){ return STATE.trips.find(t=>t.id===STATE.activeTripId) || realTrips()[0] || STATE.trips[0] || null; }
+function activeTrip(){ return STATE.trips.find(t=>t.id===STATE.activeTripId) || sortTrips(realTrips())[0] || STATE.trips[0] || null; }
 function syncModelRef(){ const t=activeTrip(); if(t) STATE.activeTripId=t.id; MODEL = t ? t.model : []; }
-function normalize(){ syncModelRef(); }
-function load(){ try{const s=localStorage.getItem(KEY); if(s){ STATE=migrate(JSON.parse(s)); normalize(); return; }}catch(e){} STATE=freshState(); normalize(); }
+
+/* ---- Локальное хранение ----
+   KEY — текущий STATE; KEY_base — версия из облака, на которой он основан (база для слияния);
+   KEY_rev — её номер; KEY_dirty — есть правки, ещё не записанные в облако. */
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
+let BASE=null, BASE_REV=0, dirty=false, dirtySince=0, editSeq=0;
+function persist(){
+  lsSet(KEY, JSON.stringify(STATE)); lsSet(KEY+'_base', BASE);
+  lsSet(KEY+'_rev', String(BASE_REV)); lsSet(KEY+'_dirty', dirty?'1':'');
+}
+function load(){
+  STATE=parseState(lsGet(KEY)); BASE=lsGet(KEY+'_base');
+  BASE_REV=parseInt(lsGet(KEY+'_rev')||'0',10)||0; dirty=lsGet(KEY+'_dirty')==='1';
+  syncModelRef();
+}
 /* Весь STATE лежит одним документом в Firestore; лимит документа — 1 МиБ.
    Берём с запасом 1 000 000 байт и предупреждаем при заполнении на 80%. */
-const STORE_LIMIT=1000000;
+const STORE_LIMIT=1000000, DOC_MAX=1040000;
 let __storeWarned=false;
 function stateBytes(){ try{ return new Blob([JSON.stringify(STATE)]).size; }catch(e){ return 0; } }
 function checkStorage(bytes){
   if(bytes>=STORE_LIMIT*0.8 && !__storeWarned){ __storeWarned=true;
     setTimeout(()=>alert('⚠️ Облачное хранилище заполнено на '+Math.round(bytes/STORE_LIMIT*100)+'% (лимит ~1 МБ).\nУдалите старые поездки и шаблоны — иначе синхронизация перестанет сохранять изменения.\nТекущее заполнение видно в Профиле.'),100); }
 }
-function save(){ localUpdatedAt=Date.now();
-  let bytes=0;
-  try{ const s=JSON.stringify(STATE); bytes=new Blob([s]).size;
-    localStorage.setItem(KEY,s); localStorage.setItem(KEY+"_ts",String(localUpdatedAt)); }catch(e){}
-  checkStorage(bytes); pushCloud(); }
+/* Правка данных: сохраняем на устройстве и отправляем в облако */
+function save(){
+  editSeq++; if(!dirty) dirtySince=Date.now(); dirty=true;
+  persist(); checkStorage(stateBytes()); pushCloud(); updateSyncUI();
+}
+/* Только на этом устройстве (например, какая поездка открыта — у каждого своя) */
+function saveLocal(){ persist(); }
 load();
-let localUpdatedAt=0; try{ localUpdatedAt=parseInt(localStorage.getItem(KEY+"_ts")||"0",10)||0; }catch(e){}
-const myId=Math.random().toString(36).slice(2);
 
-/* ===== ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ (Firebase) ===== */
-let __pushTimer=null;
+/* ===== Трёхстороннее слияние: b — общая база, l — наша версия, r — облачная =====
+   Поле изменено только у нас → наше; только в облаке → облачное; с обеих сторон → наше.
+   Списки (поездки, категории, подкатегории, задачи) сливаются по id: добавленное с любой
+   стороны остаётся, удалённое с любой стороны удаляется, порядок — с той стороны, где его меняли. */
+const same=(a,b)=> a===b || JSON.stringify(a)===JSON.stringify(b);
+function mergeFields(b,l,r,skip){
+  b=b||{}; const o={};
+  new Set([...Object.keys(l),...Object.keys(r)]).forEach(k=>{
+    if(skip.includes(k)) return;
+    const v = same(l[k],b[k]) ? r[k] : l[k];
+    if(v!==undefined) o[k]=v;
+  });
+  return o;
+}
+function mergeList(b,l,r,idf,mc){
+  b=b||[]; l=l||[]; r=r||[];
+  const B=new Map(b.map(x=>[idf(x),x])), L=new Map(l.map(x=>[idf(x),x])), R=new Map(r.map(x=>[idf(x),x]));
+  const keep=id=> B.has(id) ? (L.has(id)&&R.has(id)) : (L.has(id)||R.has(id));
+  const val=id=>{ const y=L.get(id), z=R.get(id); return (y&&z) ? mc(B.get(id),y,z) : (y||z); };
+  const common=a=>a.map(idf).filter(id=>B.has(id)&&L.has(id)&&R.has(id)).join('\u0001');
+  const baseOrd=common(b), lMoved=common(l)!==baseOrd, rMoved=common(r)!==baseOrd;
+  const sk=(lMoved||!rMoved)?l:r, ot=(sk===l)?r:l;
+  const res=sk.map(idf).filter(keep), inRes=new Set(res);
+  /* добавленное на другой стороне — встаёт после своего соседа сверху */
+  ot.forEach((x,i)=>{ const id=idf(x); if(inRes.has(id)||!keep(id)) return;
+    let pos=0; for(let j=i-1;j>=0;j--){ const k=res.indexOf(idf(ot[j])); if(k>=0){ pos=k+1; break; } }
+    res.splice(pos,0,id); inRes.add(id); });
+  return res.map(val);
+}
+function mergeItem(b,l,r){ return mergeFields(b,l,r,[]); }
+function mergeGroup(b,l,r){ const o=mergeFields(b,l,r,['items']);
+  if(l.items||r.items) o.items=mergeList(b&&b.items, l.items, r.items, x=>x.id, mergeItem); return o; }
+function mergePage(b,l,r){ const o=mergeFields(b,l,r,['groups']);
+  o.groups=mergeList(b&&b.groups, l.groups, r.groups, x=>x.gid, mergeGroup); return o; }
+function mergeTrip(b,l,r){ const o=mergeFields(b,l,r,['model']);
+  o.model=mergeList(b&&b.model, l.model, r.model, x=>x.key, mergePage); return o; }
+function mergeStates(b,l,r){
+  const st={v:2, activeTripId:l.activeTripId, trips:mergeList(b.trips, l.trips, r.trips, x=>x.id, mergeTrip)};
+  /* задача, перенесённая в разные места на двух устройствах, не должна раздвоиться */
+  st.trips.forEach(t=>{ const seen=new Set();
+    t.model.forEach(p=>p.groups.forEach(g=>{ if(g.items) g.items=g.items.filter(it=>!seen.has(it.id) && seen.add(it.id)); })); });
+  return normalizeIds(st);
+}
+
+/* ===== ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ (Firebase) =====
+   Весь STATE — один документ. Запись идёт транзакцией: читаем облачную версию, сливаем
+   с нашими правками (mergeStates) и только потом пишем — одновременные правки с разных
+   устройств не затирают друг друга. Время устройств не сравниваем (часы могут врать).
+   Пока не пришёл первый снимок из облака — ничего не отправляем: иначе старый кэш
+   устройства затёр бы свежие данные. */
+const myId=Math.random().toString(36).slice(2);
+let cloudSynced=false, cloudGen=0, cloudUnsub=null, syncing=false;
+let pendingSnap=null, hasPendingSnap=false, idleQueue=[];
+let syncErr='', retryTimer=null, retryDelay=4000, __pushTimer=null, syncUiTimer=null;
+/* Во время перетаскивания данные под пальцем не трогаем — откладываем до отпускания */
+function whenIdle(fn){ if(drag) idleQueue.push(fn); else fn(); }
+function rerenderAll(){
+  if(!appShown()) return;
+  render(); if(tripsOpen) renderTrips(); if(profileOpen){ renderProfileCats(); renderStorage(); }
+}
+/* Подставить новое состояние, сохранив открытую на этом устройстве поездку */
+function applyState(st){
+  const keep=STATE && STATE.activeTripId;
+  STATE=st;
+  if(keep && STATE.trips.some(t=>t.id===keep)) STATE.activeTripId=keep;
+  syncModelRef(); rerenderAll();
+}
 function pushCloud(){
-  if(!window.CLOUD) return;
   clearTimeout(__pushTimer);
-  __pushTimer=setTimeout(()=>{ try{ window.CLOUD.push({data:JSON.stringify(STATE),updatedAt:localUpdatedAt,writer:myId}); }catch(e){} }, 400);
+  if(!dirty || !cloudSynced || !window.CLOUD) return;
+  __pushTimer=setTimeout(doSync, 400);
+}
+async function doSync(){
+  if(syncing || !dirty || !cloudSynced || !window.CLOUD) return;
+  syncing=true; clearTimeout(retryTimer);
+  const gen=cloudGen, seq=editSeq, localStr=JSON.stringify(STATE), baseStr=BASE;
+  let out=null, err=null;
+  try{
+    out=await window.CLOUD.sync(remote=>{
+      const rs = remote && typeof remote.data==='string' && validData(remote.data) ? remote.data : null;
+      const merged = (!rs || rs===baseStr) ? localStr
+        : JSON.stringify(mergeStates(parseState(baseStr), parseState(localStr), parseState(rs)));
+      if(new Blob([merged]).size>DOC_MAX){ const e=new Error('too-big'); e.code='too-big'; throw e; }
+      return {data:merged, updatedAt:Date.now(), writer:myId, rev:((remote&&remote.rev)|0)+1};
+    });
+  }catch(e){ err=e; }
+  syncing=false;
+  if(gen!==cloudGen) return;   /* за время записи сменился вход — результат не применяем */
+  if(err){ onSyncError(err); whenIdle(flushPendingSnap); return; }
+  syncErr=''; retryDelay=4000; BASE=out.data; BASE_REV=out.rev;
+  whenIdle(()=>{
+    if(editSeq===seq){ dirty=false; if(out.data!==localStr) applyState(parseState(out.data)); }
+    else applyState(mergeStates(parseState(localStr), STATE, parseState(out.data)));   /* правили во время записи */
+    persist(); if(dirty) pushCloud(); updateSyncUI();
+    flushPendingSnap();
+  });
+}
+function onSyncError(e){
+  const code=e && e.code;
+  if(code==='permission-denied'){ syncErr='Нет доступа к облаку.'; if(__authedUser) showDenied(__authedUser.email); }
+  else if(code==='too-big'){ syncErr='Список больше лимита облака (~1 МБ) — удалите старые поездки или шаблоны. Изменения пока сохранены только на этом устройстве.'; }
+  else { syncErr=''; clearTimeout(retryTimer); retryTimer=setTimeout(doSync, retryDelay); retryDelay=Math.min(retryDelay*2, 60000); }
+  updateSyncUI();
+}
+function flushPendingSnap(){ if(!hasPendingSnap) return; const d=pendingSnap; hasPendingSnap=false; pendingSnap=null; onRemote(d,null); }
+/* Пришёл снимок документа из облака */
+function onRemote(d, meta){
+  if(drag || syncing){ pendingSnap=d; hasPendingSnap=true; return; }
+  if(!cloudSynced){
+    if(meta && meta.fromCache) return;   /* ждём настоящий ответ сервера */
+    cloudSynced=true; markAccessOk();
+  }
+  if(!d){   /* документа ещё нет — создаём из локальных данных */
+    if(STATE.trips.length){ if(!dirty) dirtySince=Date.now(); dirty=true; persist(); pushCloud(); }
+    rerenderAll(); updateSyncUI(); return;
+  }
+  const known = (typeof d.rev==='number' && d.rev<BASE_REV) || d.data===BASE   /* старый снимок или наш же */
+    || typeof d.data!=='string' || !validData(d.data);                          /* повреждённый — пропускаем */
+  if(!known){
+    const remote=parseState(d.data);
+    applyState(dirty ? mergeStates(parseState(BASE), STATE, remote) : remote);
+    BASE=d.data; BASE_REV = typeof d.rev==='number' ? d.rev : 0;
+    persist();
+  }
+  if(dirty) pushCloud();
+  updateSyncUI();
 }
 function startCloud(){
+  const gen=++cloudGen; cloudSynced=false;
   const go=()=>{
-    if(!window.CLOUD) return;
-    window.CLOUD.subscribe(d=>{
-      if(!d){ if(!localUpdatedAt) localUpdatedAt=Date.now(); pushCloud(); return; }
-      if(d.writer===myId) return;
-      if((d.updatedAt||0) >= localUpdatedAt){
-        let parsed; try{ parsed=JSON.parse(d.data); }catch(e){ return; }
-        STATE=migrate(parsed); normalize();
-        localUpdatedAt=d.updatedAt||Date.now();
-        try{ localStorage.setItem(KEY,JSON.stringify(STATE)); localStorage.setItem(KEY+"_ts",String(localUpdatedAt)); }catch(e){}
-        if((active===null || !MODEL.some(p=>p.key===active)) && MODEL.length) active=MODEL[0].key;
-        /* Пришёл снапшот во время перетаскивания — не перестраиваем DOM под пальцем */
-        if(drag){ pendingRemoteRender=true; }
-        else { render(); if(tripsOpen) renderTrips(); }
-      } else { pushCloud(); }
-    }, (e)=>{
-      if(e && e.code==='permission-denied'){ showDenied(__authedUser && __authedUser.email); }
-    });
+    if(gen!==cloudGen || !window.CLOUD) return;
+    cloudUnsub=window.CLOUD.subscribe(
+      (d,meta)=>{ if(gen===cloudGen) onRemote(d,meta); },
+      (e)=>{ if(gen!==cloudGen) return;
+        if(e && e.code==='permission-denied' && __authedUser) showDenied(__authedUser.email); });
   };
-  if(window.CLOUD){ go(); } else { window.addEventListener('cloud-ready', go, {once:true}); }
+  if(window.CLOUD) go(); else window.addEventListener('cloud-ready', go, {once:true});
 }
+function stopCloud(){
+  cloudGen++; cloudSynced=false; pendingSnap=null; hasPendingSnap=false;
+  clearTimeout(__pushTimer); clearTimeout(retryTimer);
+  if(cloudUnsub){ try{ cloudUnsub(); }catch(e){} cloudUnsub=null; }
+}
+window.addEventListener('online', ()=>{ retryDelay=4000; doSync(); updateSyncUI(); });
+window.addEventListener('offline', updateSyncUI);
+/* Индикатор рядом с прогрессом: пусто — всё в облаке */
+function updateSyncUI(){
+  const el=document.getElementById('syncLbl'); if(!el) return;
+  clearTimeout(syncUiTimer);
+  let txt='', cls='';
+  if(syncErr){ txt='⚠️ не сохраняется в облако'; cls='err'; }
+  else if(dirty && __authedUser){
+    const wait=3000-(Date.now()-dirtySince);
+    if(wait>0 && cloudSynced && navigator.onLine!==false) syncUiTimer=setTimeout(updateSyncUI, wait+50);
+    else txt = (navigator.onLine===false || !cloudSynced) ? '⏳ ждёт связи' : '⏳ сохраняется…';
+  }
+  el.textContent = txt ? ' · '+txt : '';
+  el.className = 'sync-lbl'+(cls?' '+cls:'');
+}
+function showSyncInfo(){ if(syncErr) alert(syncErr); }
 
 /* ================= РЕНДЕР ================= */
 const CHECK='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -577,10 +744,12 @@ function render(){
   if(MODEL.length && !MODEL.some(p=>p.key===active)) active=MODEL[0].key;
   pagesEl.innerHTML=''; tabsEl.innerHTML='';
   if(!MODEL.length){
-    const noTrips=!realTrips().length && !getTemplate();
+    const noTrips=!STATE.trips.length;
     const tplActive=isTemplate(activeTrip());
     pagesEl.innerHTML = noTrips
-      ? '<div class="loading">Загрузка… или создайте поездку, нажав «🧳» вверху.</div>'
+      ? (cloudSynced
+          ? '<div class="loading">Пока нет поездок.<br><button class="reset" style="margin-top:12px" onclick="openTrips()">＋ Создать поездку</button></div>'
+          : '<div class="loading">Загрузка…</div>')
       : '<div class="loading">'+(tplActive
           ? 'Шаблон пуст. Добавьте категории и пункты — это станет основой для новых поездок.'
           : 'В этой поездке пока нет категорий.')
@@ -594,41 +763,39 @@ function render(){
     const page=document.createElement('div');
     page.className='page'+(p.key===active?' on':''); page.id='page-'+p.key;
     let html='';
-    p.groups.forEach((g,gi)=>{
+    p.groups.forEach(g=>{
+      const gid=g.gid;
       if(typeof g.sub==='string'){
-        html+=`<div class="sub" data-gi="${gi}"><span class="sub-tx">${esc(g.sub)}</span>
+        html+=`<div class="sub" data-gid="${gid}"><span class="sub-tx">${esc(g.sub)}</span>
           <span class="sub-acts">
-            <button onclick="openSubEditor(event,'${p.key}',${gi})">✎</button>
-            <button class="del" onclick="deleteGroup(event,'${p.key}',${gi})">✕</button>
-            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}',${gi})">≡</button>
+            <button onclick="openSubEditor(event,'${p.key}','${gid}')">✎</button>
+            <button class="del" onclick="deleteGroup(event,'${p.key}','${gid}')">✕</button>
+            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}','${gid}')">≡</button>
           </span></div>`;
         return;
       }
-      const gk=p.key+'-'+gi;
+      const gk=p.key+'|'+gid;
       const closed=openState[gk]===false?' closed':'';
-      html+=`<div class="group${closed}" data-gk="${gk}" data-gi="${gi}">
+      html+=`<div class="group${closed}" data-gk="${gk}" data-gid="${gid}">
         <div class="g-head" onclick="toggleGroup('${gk}')">
           <span class="emo">${esc(g.emo||'')}</span><span class="ttl">${esc(g.title)}</span>
           <span class="g-acts">
-            <button onclick="openGroupEditor(event,'${p.key}',${gi})">✎</button>
-            <button class="del" onclick="deleteGroup(event,'${p.key}',${gi})">✕</button>
-            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}',${gi})">≡</button>
+            <button onclick="openGroupEditor(event,'${p.key}','${gid}')">✎</button>
+            <button class="del" onclick="deleteGroup(event,'${p.key}','${gid}')">✕</button>
+            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}','${gid}')">≡</button>
           </span>
           <span class="cnt" id="cnt-${gk}"></span><span class="chev">▼</span>
         </div><div class="items">`;
-      let disp=g.items.slice();
-      if(hideDone) disp=disp.filter(it=>!it.done);
-      else disp.sort((a,b)=>(a.done?1:0)-(b.done?1:0));
-      disp.forEach(it=>{
+      dispItems(g).forEach(it=>{
         const note=it.n?`<span class="note">${esc(it.n)}</span>`:'';
-        html+=`<div class="item${it.done?' checked':''}" data-id="${it.id}" data-gi="${gi}" onpointerdown="onItemPointerDown(event,'${it.id}')">
+        html+=`<div class="item${it.done?' checked':''}" data-id="${it.id}" onpointerdown="onItemPointerDown(event,'${it.id}')">
           <span class="box" onclick="boxTap(event,'${it.id}')">${CHECK}</span>
           <div class="lbl-wrap" onclick="openTaskEdit('${it.id}')"><span class="lbl">${esc(it.t)}</span>${note}</div>
           <span class="acts"><button class="act del" onclick="delItem(event,'${it.id}')">✕</button></span>
           <button class="drag" onpointerdown="onHandleDown(event,'${it.id}')">≡</button>
         </div>`;
       });
-      html+=`<div class="additem" onclick="openTaskNew('${p.key}',${gi})"><span class="plus">＋</span><span class="addtx">Добавить задачу</span></div></div></div>`;
+      html+=`<div class="additem" onclick="openTaskNew('${p.key}','${gid}')"><span class="plus">＋</span><span class="addtx">Добавить задачу</span></div></div></div>`;
     });
     html+=`<div class="newgrp" onclick="openGroupEditor(null,'${p.key}',null)">＋ Подкатегория</div>`;
     html+=`<div class="newsub" onclick="openSubEditor(null,'${p.key}',null)">＋ Заголовок-раздел</div>`;
@@ -638,13 +805,16 @@ function render(){
     btn.innerHTML=`<span class="ic">${esc(p.icon||'📋')}</span><span class="tx">${esc(p.tab)}</span><span class="dot" id="dot-${p.key}"></span>`;
     btn.onclick=()=>go(p.key); tabsEl.appendChild(btn);
   });
-  document.getElementById('hint').textContent = document.body.classList.contains('editmode')
-    ? 'Правка: ✎ изменить, ✕ удалить, ≡ или долгое нажатие — перетащить. Ниже — «＋ Подкатегория» и «＋ Заголовок-раздел».'
-    : 'Нажмите на задачу, чтобы открыть её. «Править» — заголовки-разделы, подкатегории и порядок.';
+  setHint();
   refresh();
 }
+/* Задачи группы в порядке показа: выполненные внизу (или скрыты при hideDone) */
+function dispItems(g){ return hideDone ? g.items.filter(it=>!it.done) : g.items.slice().sort((a,b)=>(a.done?1:0)-(b.done?1:0)); }
 function findItem(id){ for(const p of MODEL) for(const g of p.groups) if(g.items) for(const it of g.items) if(it.id===id) return {it,g,p}; return null; }
-function toggleGroup(gk){ openState[gk]=!(openState[gk]!==false); document.querySelector(`.group[data-gk="${gk}"]`).classList.toggle('closed'); }
+function findGroup(pk,gid){ const p=MODEL.find(x=>x.key===pk); if(!p) return null; const gi=p.groups.findIndex(g=>g.gid===gid); return gi<0?null:{p,g:p.groups[gi],gi}; }
+/* Правили то, что тем временем удалили на другом устройстве */
+function goneAlert(){ alert('Этот элемент уже удалён на другом устройстве.'); }
+function toggleGroup(gk){ if(justDragged) return; openState[gk]=!(openState[gk]!==false); document.querySelector(`.group[data-gk="${gk}"]`).classList.toggle('closed'); }
 let justDragged=false;
 function boxTap(e,id){
   e.stopPropagation();
@@ -657,7 +827,7 @@ function delItem(e,id){ e.stopPropagation(); const f=findItem(id); if(!f) return
   if(!confirm("Удалить: «"+f.it.t+"»?")) return; f.g.items=f.g.items.filter(x=>x.id!==id); save(); render(); }
 
 /* ---- Окно задачи (Todoist-стиль) ---- */
-let tsMode='new', tsId=null, tsPk=null, tsGi=null;
+let tsMode='new', tsId=null, tsPk=null, tsGid=null;
 /* Счётчик, а не флаг: поверх профиля может открыться bottom-sheet —
    его закрытие не должно разблокировать фон, пока профиль ещё открыт. */
 let scrollLocks=0;
@@ -691,20 +861,22 @@ function openTaskEdit(id){
   document.getElementById('tsNote').value=f.it.n||'';
   openTS();
 }
-function openTaskNew(pk,gi){
-  tsMode='new'; tsPk=pk; tsGi=gi; tsId=null;
+function openTaskNew(pk,gid){
+  tsMode='new'; tsPk=pk; tsGid=gid; tsId=null;
   document.getElementById('tsTitle').textContent='Новая задача';
   document.getElementById('tsDel').classList.add('hidden');
   document.getElementById('tsName').value='';
   document.getElementById('tsNote').value='';
-  openTS(); setTimeout(()=>document.getElementById('tsName').focus(),80);
+  openTS();
+  /* фокус синхронно, в том же нажатии — иначе iOS не откроет клавиатуру */
+  const inp=document.getElementById('tsName'); try{ inp.focus({preventScroll:true}); }catch(e){ inp.focus(); }
 }
 function saveTaskSheet(){
   const t=document.getElementById('tsName').value.trim();
   const n=document.getElementById('tsNote').value.trim();
   if(!t){ document.getElementById('tsName').focus(); return; }
-  if(tsMode==='edit'){ const f=findItem(tsId); if(f){ f.it.t=t; f.it.n=n; } }
-  else { const p=MODEL.find(x=>x.key===tsPk); if(p&&p.groups[tsGi]){ (p.groups[tsGi].items||(p.groups[tsGi].items=[])).unshift({id:nid(),t,n,done:false}); } }
+  if(tsMode==='edit'){ const f=findItem(tsId); if(!f){ goneAlert(); closeTaskSheet(); render(); return; } f.it.t=t; f.it.n=n; }
+  else { const f=findGroup(tsPk,tsGid); if(!f){ goneAlert(); closeTaskSheet(); render(); return; } (f.g.items||(f.g.items=[])).unshift({id:nid(),t,n,done:false}); }
   save(); closeTaskSheet(); render();
 }
 function deleteTaskFromSheet(){
@@ -735,16 +907,18 @@ function go(pk){ active=pk;
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+pk));
   [...tabsEl.children].forEach(b=>b.classList.toggle('on',b.dataset.p===pk)); window.scrollTo({top:0}); }
 function openViewCurrent(){ if(active) openViewSheet(active); }
-function toggleEdit(){ const on=document.body.classList.toggle('editmode');
-  document.getElementById('hint').textContent=on
-    ?'Правка: ✎ изменить, ✕ удалить, ≡ или долгое нажатие — перетащить. Ниже — «＋ Подкатегория» и «＋ Заголовок-раздел».'
-    :'Нажмите на задачу, чтобы открыть её. «Править» — заголовки-разделы, подкатегории и порядок.'; }
+function setHint(){
+  document.getElementById('hint').textContent = document.body.classList.contains('editmode')
+    ? 'Правка: ✎ изменить, ✕ удалить, ≡ или долгое нажатие — перетащить. Ниже — «＋ Подкатегория» и «＋ Заголовок-раздел».'
+    : 'Нажмите на задачу, чтобы открыть её. «Править» — заголовки-разделы, подкатегории и порядок.';
+}
+function toggleEdit(){ document.body.classList.toggle('editmode'); setHint(); }
 function refresh(){
   let T=0,D=0;
   MODEL.forEach(p=>{ let pt=0,pd=0;
-    p.groups.forEach((g,gi)=>{ if(!g.items) return; let gt=0,gd=0;
+    p.groups.forEach(g=>{ if(!g.items) return; let gt=0,gd=0;
       g.items.forEach(it=>{gt++; if(it.done)gd++;}); pt+=gt; pd+=gd;
-      const c=document.getElementById(`cnt-${p.key}-${gi}`);
+      const c=document.getElementById(`cnt-${p.key}|${g.gid}`);
       if(c){c.textContent=`${gd}/${gt}`; c.classList.toggle('full',gt>0&&gd===gt);} });
     T+=pt; D+=pd;
     const dot=document.getElementById('dot-'+p.key); const btn=[...tabsEl.children].find(b=>b.dataset.p===p.key);
@@ -760,7 +934,6 @@ function refresh(){
 }
 
 /* ================= ПОЕЗДКИ ================= */
-const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 function pd(s){ if(!s) return null; const d=new Date(s+'T00:00:00'); return isNaN(d.getTime())?null:d; }
 function pad2(n){ return (n<10?'0':'')+n; }
 function fmtOne(s){ const d=pd(s); return d? d.getDate()+'.'+pad2(d.getMonth()+1)+'.'+String(d.getFullYear()).slice(-2) : ''; }
@@ -871,7 +1044,7 @@ function switchTrip(id){
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
   STATE.activeTripId=id; syncModelRef();
   active = MODEL[0] ? MODEL[0].key : null;
-  save(); closeTrips(); render(); window.scrollTo({top:0});
+  saveLocal(); closeTrips(); render(); window.scrollTo({top:0});
 }
 /* Глубокая копия структуры поездки: новые id, галочки сброшены */
 function cloneModel(model){
@@ -879,7 +1052,7 @@ function cloneModel(model){
     key:'c'+Date.now().toString(36)+(uid++),
     icon:p.icon||'📋', tab:p.tab||'', title:p.title||'', intro:p.intro||'',
     groups:(p.groups||[]).map(g=>{
-      const ng={...g};
+      const ng={...g, gid:gidNew()};
       if(ng.items) ng.items=ng.items.map(it=>({id:nid(), t:it.t, n:it.n||'', done:false}));
       return ng;
     })
@@ -968,7 +1141,7 @@ function deleteTrip(e,id){ e.stopPropagation();
   const tpl=isTemplate(t);
   if(!confirm('Удалить '+(tpl?'шаблон':'поездку')+' «'+t.location+'»? Отменить будет нельзя.')) return;
   STATE.trips=STATE.trips.filter(x=>x.id!==id);
-  if(STATE.activeTripId===id){ const nxt=realTrips()[0]||STATE.trips[0]; STATE.activeTripId = nxt?nxt.id:null; syncModelRef(); active = MODEL[0]?MODEL[0].key:null; }
+  if(STATE.activeTripId===id){ const nxt=sortTrips(realTrips())[0]||STATE.trips[0]; STATE.activeTripId = nxt?nxt.id:null; syncModelRef(); active = MODEL[0]?MODEL[0].key:null; }
   save(); renderTrips(); render();
 }
 /* ===== Редактор категорий/подкатегорий + эмодзи-пикер ===== */
@@ -993,33 +1166,38 @@ function emojiSuggest(name){
   const res=[]; for(const [stems,emo] of EMOJI_HINTS){ if(stems.some(st=>s.includes(st)) && res.indexOf(emo)<0) res.push(emo); }
   return res.slice(0,7);
 }
-let esMode='cat', esPk=null, esGi=null, esNew=false, esEmoji='📋';
+let esMode='cat', esPk=null, esGid=null, esNew=false, esEmoji='📋';
 function openESheet(){ openSheetEl(document.getElementById('esheet')); }
 function closeESheet(){ closeSheetEl(document.getElementById('esheet')); }
 function buildEmojiGrid(){ document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e=>`<button type="button" class="eg${e===esEmoji?' on':''}" onclick="setEmoji('${e}')">${e}</button>`).join(''); }
 function setEmoji(e){ esEmoji=e; document.getElementById('eEmojiCur').textContent=e;
   document.querySelectorAll('#emojiGrid .eg').forEach(b=>b.classList.toggle('on', b.textContent===e)); }
 function showEmojiBlock(on){ document.getElementById('esEmojiBlock').style.display = on?'':'none'; }
-function applyOwnEmoji(){ const v=(document.getElementById('eOwn').value||'').trim(); if(v){ setEmoji(v); document.getElementById('eOwn').value=''; } }
+/* Первый символ целиком (составные эмодзи 👨‍👩‍👧 и флаги — это несколько кодов) */
+function firstGrapheme(s){
+  try{ if(window.Intl && Intl.Segmenter){ const it=new Intl.Segmenter('ru',{granularity:'grapheme'}).segment(s)[Symbol.iterator]().next(); return it.done?'':it.value.segment; } }catch(e){}
+  return Array.from(s).slice(0,2).join('');
+}
+function applyOwnEmoji(){ const v=firstGrapheme((document.getElementById('eOwn').value||'').trim()); if(v){ setEmoji(v); document.getElementById('eOwn').value=''; } }
 function suggestEmoji(){
   const sug=emojiSuggest(document.getElementById('eName').value);
   document.getElementById('emojiSug').innerHTML = sug.map(e=>`<button type="button" class="es" onclick="setEmoji('${e}')">${e}</button>`).join('');
 }
 function openCatEditor(pk){
-  esMode='cat'; esNew=!pk; esPk=pk||null; esGi=null;
+  esMode='cat'; esNew=!pk; esPk=pk||null; esGid=null;
   const p = pk ? MODEL.find(x=>x.key===pk) : null;
   esEmoji = p ? (p.icon||'📋') : '📋';
   document.getElementById('esTitle').textContent = pk ? 'Категория' : 'Новая категория';
   document.getElementById('eNameLbl').textContent = 'Название категории';
-  document.getElementById('eName').value = p ? (p.tab||p.title||'') : '';
+  document.getElementById('eName').value = p ? (p.title||p.tab||'') : '';
   document.getElementById('eEmojiCur').textContent = esEmoji;
   document.getElementById('eOwn').value=''; showEmojiBlock(true);
   buildEmojiGrid(); suggestEmoji(); openESheet();
 }
-function openGroupEditor(e,pk,gi){
+function openGroupEditor(e,pk,gid){
   if(e && e.stopPropagation) e.stopPropagation();
-  esMode='group'; esNew=(gi===null||gi===undefined); esPk=pk; esGi=esNew?null:gi;
-  const p=MODEL.find(x=>x.key===pk); const g=(!esNew&&p)?p.groups[gi]:null;
+  esMode='group'; esNew=(gid==null); esPk=pk; esGid=esNew?null:gid;
+  const f=esNew?null:findGroup(pk,gid); const g=f?f.g:null;
   esEmoji = g ? (g.emo||'📦') : '📦';
   document.getElementById('esTitle').textContent = esNew ? 'Новая подкатегория' : 'Подкатегория';
   document.getElementById('eNameLbl').textContent = 'Название подкатегории';
@@ -1028,10 +1206,10 @@ function openGroupEditor(e,pk,gi){
   document.getElementById('eOwn').value=''; showEmojiBlock(true);
   buildEmojiGrid(); suggestEmoji(); openESheet();
 }
-function openSubEditor(e,pk,gi){
+function openSubEditor(e,pk,gid){
   if(e && e.stopPropagation) e.stopPropagation();
-  esMode='sub'; esNew=(gi===null||gi===undefined); esPk=pk; esGi=esNew?null:gi;
-  const p=MODEL.find(x=>x.key===pk); const g=(!esNew&&p)?p.groups[gi]:null;
+  esMode='sub'; esNew=(gid==null); esPk=pk; esGid=esNew?null:gid;
+  const f=esNew?null:findGroup(pk,gid); const g=f?f.g:null;
   document.getElementById('esTitle').textContent = esNew ? 'Новый заголовок-раздел' : 'Заголовок-раздел';
   document.getElementById('eNameLbl').textContent = 'Текст заголовка';
   document.getElementById('eName').value = g ? (g.sub||'') : '';
@@ -1041,17 +1219,17 @@ function openSubEditor(e,pk,gi){
 function saveESheet(){
   const name=document.getElementById('eName').value.trim();
   if(!name){ document.getElementById('eName').focus(); return; }
+  const gone=()=>{ goneAlert(); closeESheet(); render(); if(profileOpen) renderProfileCats(); };
+  /* tab — подпись в нижней навигации (длинную обрежет CSS), title — полное название */
   if(esMode==='cat'){
     if(esNew){ const key='c'+Date.now().toString(36)+(uid++);
-      MODEL.push({key, icon:esEmoji, tab:name.slice(0,12), title:name, intro:'', groups:[]}); active=key;
-    } else { const p=MODEL.find(x=>x.key===esPk); if(p){ p.icon=esEmoji; p.tab=name.slice(0,12); p.title=name; } }
-  } else if(esMode==='sub'){
-    const p=MODEL.find(x=>x.key===esPk);
-    if(p){ if(esNew){ p.groups.push({sub:name}); } else if(p.groups[esGi]){ p.groups[esGi].sub=name; } }
+      MODEL.push({key, icon:esEmoji, tab:name, title:name, intro:'', groups:[]}); active=key;
+    } else { const p=MODEL.find(x=>x.key===esPk); if(!p) return gone(); p.icon=esEmoji; p.tab=name; p.title=name; }
   } else {
-    const p=MODEL.find(x=>x.key===esPk);
-    if(p){ if(esNew){ p.groups.push({emo:esEmoji, title:name, items:[]}); }
-      else if(p.groups[esGi]){ p.groups[esGi].emo=esEmoji; p.groups[esGi].title=name; } }
+    const p=MODEL.find(x=>x.key===esPk); if(!p) return gone();
+    if(esNew){ p.groups.push(esMode==='sub' ? {gid:gidNew(), sub:name} : {gid:gidNew(), emo:esEmoji, title:name, items:[]}); }
+    else { const f=findGroup(esPk,esGid); if(!f) return gone();
+      if(esMode==='sub') f.g.sub=name; else { f.g.emo=esEmoji; f.g.title=name; } }
   }
   save(); closeESheet(); render(); if(profileOpen) renderProfileCats();
 }
@@ -1062,15 +1240,15 @@ function deleteCategory(pk){
   if(active===pk) active = MODEL[0]?MODEL[0].key:null;
   save(); render(); if(profileOpen) renderProfileCats();
 }
-function deleteGroup(e,pk,gi){
+function deleteGroup(e,pk,gid){
   if(e && e.stopPropagation) e.stopPropagation();
-  const p=MODEL.find(x=>x.key===pk); if(!p||!p.groups[gi]) return;
-  const g=p.groups[gi];
+  const f=findGroup(pk,gid); if(!f) return;
+  const p=f.p, g=f.g;
   const msg = (typeof g.sub==='string')
     ? 'Удалить заголовок-раздел «'+(g.sub||'')+'»?'
     : 'Удалить подкатегорию «'+(g.title||'')+'» со всеми задачами?';
   if(!confirm(msg)) return;
-  p.groups.splice(gi,1); save(); render();
+  p.groups=p.groups.filter(x=>x!==g); save(); render();
 }
 
 /* ===== Перетаскивание (задачи, подкатегории/заголовки, категории, шаблоны) =====
@@ -1079,7 +1257,7 @@ function deleteGroup(e,pk,gi){
    Выделение текста и callout отключаются на время перетаскивания. */
 function haptic(){ try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }
 function clearSel(){ try{ const s=window.getSelection&&window.getSelection(); if(s&&s.removeAllRanges) s.removeAllRanges(); }catch(e){} }
-let drag=null, lastPt={x:0,y:0}, dragRaf=false, dragPt={x:0,y:0}, pendingRemoteRender=false;
+let drag=null, lastPt={x:0,y:0}, dragRaf=false, dragPt={x:0,y:0};
 function startLongPress(e, onFire){
   const sx=e.clientX, sy=e.clientY; lastPt={x:sx,y:sy};
   const timer=setTimeout(()=>{ cleanup(); haptic(); onFire(); }, 230);
@@ -1122,17 +1300,41 @@ function onDragMove(e){
 function onDragUp(){
   window.removeEventListener('pointermove', onDragMove);
   window.removeEventListener('touchmove', blockTouchScroll);
+  window.removeEventListener('pointerup', onDragUp);
+  window.removeEventListener('pointercancel', onDragUp);
   document.body.classList.remove('dragging');
-  if(!drag) return; const d=drag; drag=null;
+  if(!drag) return; const d=drag;
+  const order=collectOrder(d);   /* порядок «как на экране» — пока плейсхолдер на месте */
+  drag=null;
   if(d.clone) d.clone.remove();
   if(d.ph) d.ph.remove();
   if(d.el) d.el.style.display='';
-  if(d.kind==='item') applyItemDrop(d);
-  else if(d.kind==='group') applyGroupDrop(d);
-  else if(d.kind==='cat') applyCatDrop(d);
-  else if(d.kind==='tpl') applyTplDrop(d);
-  if(pendingRemoteRender){ pendingRemoteRender=false; render(); if(tripsOpen) renderTrips(); if(profileOpen) renderProfileCats(); }
+  if(d.kind==='item') applyItemDrop(d,order);
+  else if(d.kind==='group') applyGroupDrop(d,order);
+  else if(d.kind==='cat') applyCatDrop(d,order);
+  else if(d.kind==='tpl') applyTplDrop(d,order);
   justDragged=true; setTimeout(()=>{ justDragged=false; }, 350);
+  /* отложенное на время драга: ответы облака и снимки с других устройств */
+  const q=idleQueue; idleQueue=[]; q.forEach(f=>f()); flushPendingSnap();
+}
+/* Итоговый порядок id в контейнере плейсхолдера: что видно на экране — то и сохраняем */
+function collectOrder(d){
+  const box=d.ph && d.ph.parentNode; if(!box) return null;
+  const sel={item:'.item', group:'.group,.sub', cat:'.prof-cat', tpl:'.trip-card[data-tpl]'}[d.kind];
+  const attr={item:'id', group:'gid', cat:'key', tpl:'tpl'}[d.kind];
+  const ids=[];
+  for(const ch of box.children){
+    if(ch===d.ph) ids.push(d.id);
+    else if(ch!==d.el && ch.matches(sel)) ids.push(ch.dataset[attr]);
+  }
+  return {box, ids};
+}
+/* Переставить arr по списку ids; кого в списке нет (скрытые) — в конец, в прежнем порядке */
+function reorderBy(arr, ids, idf, extra){
+  const map=new Map(arr.map(x=>[idf(x),x])); if(extra) map.set(idf(extra),extra);
+  const next=ids.map(id=>map.get(id)).filter(Boolean);
+  arr.forEach(x=>{ if(!ids.includes(idf(x))) next.push(x); });
+  return next;
 }
 /* Палец над самим плейсхолдером: elementFromPoint проваливается сквозь него
    (pointer-events:none) в контейнер — раньше это запускало петлю «прыжок
@@ -1181,7 +1383,8 @@ function beginItemDrag(id, x, y){
   const ph=document.createElement('div'); ph.className='drag-ph'; ph.style.height=r.height+'px';
   el.parentNode.insertBefore(ph, el); el.style.display='none';
   beginDragCommon();
-  drag={kind:'item', id, el, pageEl, clone, ph, startX:x, startY:y, target:null};
+  const f=findItem(id);
+  drag={kind:'item', id, pk:f&&f.p.key, el, pageEl, clone, ph, startX:x, startY:y};
   attachDrag();
 }
 function itemDragOver(x,y){
@@ -1191,8 +1394,7 @@ function itemDragOver(x,y){
   if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.style.display!=='none' && drag.pageEl.contains(over)){
     const rect=over.getBoundingClientRect(); const after=midAfter(rect,y);
     if(after===null) return;
-    placePh(over, after?over.nextSibling:over);
-    drag.target={refId:over.dataset.id, after}; return;
+    placePh(over, after?over.nextSibling:over); return;
   }
   const grp=el.closest('.group');
   if(grp && drag.pageEl.contains(grp)){
@@ -1203,47 +1405,44 @@ function itemDragOver(x,y){
     const last=items[items.length-1];
     if(last && y<=last.getBoundingClientRect().bottom) return;
     placePhAt(box, box.querySelector('.additem'));
-    drag.target={groupGi:parseInt(grp.dataset.gi,10)};
   }
 }
-function applyItemDrop(d){
-  const src=findItem(d.id); if(!src){ render(); return; }
-  const from=src.g.items; const origIdx=from.indexOf(src.it); from.splice(origIdx,1);
-  const t=d.target;
-  if(t&&t.refId!=null){ const rf=findItem(t.refId); if(rf){ const arr=rf.g.items; let i=arr.indexOf(rf.it); if(t.after)i++; arr.splice(i,0,src.it); save(); render(); return; } }
-  if(t&&t.groupGi!=null && src.p.groups[t.groupGi]){ const g=src.p.groups[t.groupGi]; (g.items||(g.items=[])).push(src.it); save(); render(); return; }
-  from.splice(origIdx,0,src.it); render(); /* цели нет — вернуть на исходное место, ничего не менять */
+function applyItemDrop(d,o){
+  const src=findItem(d.id), grpEl=o && o.box.closest('.group');
+  const tgt=grpEl && findGroup(d.pk, grpEl.dataset.gid);
+  if(!src||!tgt) return;
+  if(src.g===tgt.g && o.ids.join(',')===dispItems(tgt.g).map(x=>x.id).join(',')) return;   /* не сдвинули */
+  const next=reorderBy(tgt.g.items, o.ids, x=>x.id, src.it);
+  if(src.g!==tgt.g) src.g.items=src.g.items.filter(x=>x!==src.it);
+  tgt.g.items=next; save(); render();
 }
 /* --- подкатегории и заголовки-разделы --- */
-function onGroupHandleDown(e,pk,gi){ e.preventDefault(); e.stopPropagation();
-  const el=e.target.closest('.group,.sub'); beginGroupDrag(pk,gi,el,e.clientX,e.clientY); }
-function beginGroupDrag(pk,gi,el,x,y){
+function onGroupHandleDown(e,pk,gid){ e.preventDefault(); e.stopPropagation();
+  const el=e.target.closest('.group,.sub'); beginGroupDrag(pk,gid,el,e.clientX,e.clientY); }
+function beginGroupDrag(pk,gid,el,x,y){
   const p=MODEL.find(z=>z.key===pk); if(!p||!el) return;
   const pageEl=el.closest('.page'); const r=el.getBoundingClientRect();
   const clone=mkClone(el,r); document.body.appendChild(clone);
   const ph=document.createElement('div'); ph.className='drag-ph grp'; ph.style.height=r.height+'px';
   el.parentNode.insertBefore(ph, el); el.style.display='none';
   beginDragCommon();
-  drag={kind:'group', p, srcObj:p.groups[gi], pageEl, el, clone, ph, startX:x, startY:y, target:null};
+  drag={kind:'group', id:gid, pk, pageEl, el, clone, ph, startX:x, startY:y};
   attachDrag();
 }
 function groupDragOver(x,y){
   if(overPh(x,y)) return;
   const el=document.elementFromPoint(x,y); if(!el||!el.closest) return;
   const over=el.closest('.group')||el.closest('.sub');
-  if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.dataset.gi!=null && drag.pageEl.contains(over)){
+  if(over && over!==drag.el && !over.classList.contains('drag-clone') && over.dataset.gid && drag.pageEl.contains(over)){
     const rect=over.getBoundingClientRect(); const after=midAfter(rect,y);
     if(after===null) return;
     placePh(over, after?over.nextSibling:over);
-    drag.target={refObj: drag.p.groups[parseInt(over.dataset.gi,10)], after};
   }
 }
-function applyGroupDrop(d){
-  const arr=d.p.groups; const si=arr.indexOf(d.srcObj); if(si<0){ render(); return; } arr.splice(si,1);
-  const t=d.target;
-  if(t&&t.refObj){ let i=arr.indexOf(t.refObj); if(i<0)i=arr.length; else if(t.after)i++; arr.splice(i,0,d.srcObj); }
-  else arr.splice(Math.min(si,arr.length),0,d.srcObj);
-  save(); render();
+function applyGroupDrop(d,o){
+  const p=MODEL.find(z=>z.key===d.pk); if(!p||!o) return;
+  if(o.ids.join(',')===p.groups.map(g=>g.gid).join(',')) return;   /* не сдвинули */
+  p.groups=reorderBy(p.groups, o.ids, g=>g.gid); save(); render();
 }
 /* --- категории (в профиле) --- */
 function onCatHandleDown(e,key){ e.preventDefault(); e.stopPropagation();
@@ -1254,7 +1453,7 @@ function beginCatDrag(key,el,x,y){
   const ph=document.createElement('div'); ph.className='drag-ph'; ph.style.height=r.height+'px'; ph.style.margin='0 0 8px';
   el.parentNode.insertBefore(ph, el); el.style.display='none';
   beginDragCommon();
-  drag={kind:'cat', srcObj:MODEL.find(z=>z.key===key), container:el.parentNode, el, clone, ph, startX:x, startY:y, target:null};
+  drag={kind:'cat', id:key, container:el.parentNode, el, clone, ph, startX:x, startY:y};
   attachDrag();
 }
 function catDragOver(x,y){
@@ -1265,14 +1464,11 @@ function catDragOver(x,y){
     const rect=over.getBoundingClientRect(); const after=midAfter(rect,y);
     if(after===null) return;
     placePh(over, after?over.nextSibling:over);
-    drag.target={refObj: MODEL.find(z=>z.key===over.dataset.key), after};
   }
 }
-function applyCatDrop(d){
-  const si=MODEL.indexOf(d.srcObj); if(si<0){ render(); renderProfileCats(); return; } MODEL.splice(si,1);
-  const t=d.target;
-  if(t&&t.refObj){ let i=MODEL.indexOf(t.refObj); if(i<0)i=MODEL.length; else if(t.after)i++; MODEL.splice(i,0,d.srcObj); }
-  else MODEL.splice(Math.min(si,MODEL.length),0,d.srcObj);
+function applyCatDrop(d,o){
+  if(!o || o.ids.join(',')===MODEL.map(p=>p.key).join(',')) return;   /* не сдвинули */
+  MODEL.splice(0, MODEL.length, ...reorderBy(MODEL, o.ids, p=>p.key));
   save(); render(); renderProfileCats();
 }
 /* --- шаблоны (на экране «Мои списки») --- */
@@ -1284,7 +1480,7 @@ function beginTplDrag(id,el,x,y){
   const ph=document.createElement('div'); ph.className='drag-ph tplph'; ph.style.height=r.height+'px';
   el.parentNode.insertBefore(ph, el); el.style.display='none';
   beginDragCommon();
-  drag={kind:'tpl', id, container:el.parentNode, el, clone, ph, startX:x, startY:y, target:null};
+  drag={kind:'tpl', id, container:el.parentNode, el, clone, ph, startX:x, startY:y};
   attachDrag();
 }
 function tplDragOver(x,y){
@@ -1295,15 +1491,13 @@ function tplDragOver(x,y){
     const rect=over.getBoundingClientRect(); const after=midAfter(rect,y);
     if(after===null) return;
     placePh(over, after?over.nextSibling:over);
-    drag.target={refId:over.dataset.tpl, after};
   }
 }
-function applyTplDrop(d){
-  const src=STATE.trips.find(t=>t.id===d.id); if(!src){ renderTrips(); return; }
-  STATE.trips=STATE.trips.filter(t=>t!==src);
-  const t=d.target;
-  if(t&&t.refId){ let i=STATE.trips.findIndex(x=>x.id===t.refId); if(i<0)i=STATE.trips.length; else if(t.after)i++; STATE.trips.splice(i,0,src); }
-  else STATE.trips.push(src);
+function applyTplDrop(d,o){
+  const tpls=getTemplates();
+  if(!o || o.ids.join(',')===tpls.map(t=>t.id).join(',')) return;   /* не сдвинули — порядок не трогаем */
+  const next=reorderBy(tpls, o.ids, t=>t.id); let k=0;
+  STATE.trips=STATE.trips.map(t=>isTemplate(t)?next[k++]:t);   /* шаблоны встают на свои же места в общем массиве */
   save(); renderTrips();
 }
 
@@ -1354,8 +1548,8 @@ function renderProfileCats(){
 <!-- ===== Firebase: вход + облачная синхронизация ===== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   const firebaseConfig = {
     apiKey: "AIzaSyDob_HdG-ihclIacDESG3sdISugCXAC43U",
     authDomain: "abkhazia-checklist.firebaseapp.com",
@@ -1382,10 +1576,17 @@ function renderProfileCats(){
       signOut: () => signOut(auth)
     };
     window.CLOUD = {
-      push: (payload) => setDoc(ref, payload),
-      subscribe: (cb, errCb) => onSnapshot(ref, snap => cb(snap.exists() ? snap.data() : null), (e) => { if(errCb) errCb(e); })
+      /* build(облачные данные | null) → что записать; вызывается заново, если документ
+         успели изменить параллельно (так работают транзакции Firestore) */
+      sync: (build) => runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref);
+        const payload = build(snap.exists() ? snap.data() : null);
+        tx.set(ref, payload);
+        return payload;
+      }),
+      /* возвращает функцию отписки */
+      subscribe: (cb, errCb) => onSnapshot(ref, snap => cb(snap.exists() ? snap.data() : null, snap.metadata), (e) => { if(errCb) errCb(e); })
     };
-    getRedirectResult(auth).catch(()=>{});
     onAuthStateChanged(auth, (user) => {
       if (window.onAuthChange) window.onAuthChange(user || null);
     });
