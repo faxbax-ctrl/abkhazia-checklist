@@ -499,7 +499,17 @@ function showApp(){
   render(); updateAvatar(); updateSyncUI();
 }
 function registerSW(){
-  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+  if(!('serviceWorker' in navigator)) return;
+  const hadController=!!navigator.serviceWorker.controller;   /* первый запуск — не перезагружаем */
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  /* Пришла новая версия приложения: если ничего не открыто — сразу перезагружаемся,
+     иначе предлагаем кнопкой (чтобы не потерять набираемый текст) */
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(!hadController || window.__reloading) return;
+    const busy=drag || profileOpen || tripsOpen || document.querySelector('.sheet-back[data-open="1"]');
+    const go=()=>{ window.__reloading=true; location.reload(); };
+    if(busy) showToast('Вышла новая версия', 'Обновить', go); else go();
+  });
 }
 
 /* ================= МОДЕЛЬ =================

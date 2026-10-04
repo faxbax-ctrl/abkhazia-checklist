@@ -19,7 +19,9 @@ Claude Code читает этот файл в начале каждой сесс
 ## Технологии — НЕТ сборки, НЕТ фреймворков
 - `index.html` — всё приложение: HTML, CSS (`<style>`), JS (`<script>`), внизу —
   `<script type="module">` с Firebase (Auth + Firestore, SDK v10 с CDN gstatic).
-- `sw.js` — service worker: офлайн-кэш своих файлов и Firebase SDK.
+- `sw.js` — service worker: офлайн-кэш своих файлов и Firebase SDK. При установке файлы
+  качаются мимо кэша браузера (`cache:'reload'`); новая версия применяется сама
+  (`controllerchange` в `registerSW`: перезагрузка, а если открыто окно — кнопка «Обновить»).
 - `manifest.webmanifest`, `icon-*.png` — PWA.
 - Хостинг: GitHub Pages, ветка `main`. Правки — прямо в файлах, никаких `npm build`.
 

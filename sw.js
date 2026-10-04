@@ -1,5 +1,5 @@
 /* «Соберись!» — service worker (офлайн) */
-const CACHE = 'abkhazia-v17';
+const CACHE = 'abkhazia-v18';
 const ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,9 @@ const SDK = ['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js']
   .map(f => SDK_PREFIX + '10.12.0/' + f);
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).then(() =>
+  /* cache:'reload' — мимо обычного кэша браузера: GitHub Pages отдаёт файлы с max-age=600,
+     и без этого в новый кэш мог попасть старый index.html */
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS.map(u => new Request(u, {cache: 'reload'}))).then(() =>
     /* SDK — по возможности: если не скачался, установка всё равно проходит */
     Promise.all(SDK.map(u => fetch(u).then(r => r.ok && c.put(u, r)).catch(() => {})))
   )).then(() => self.skipWaiting()));
