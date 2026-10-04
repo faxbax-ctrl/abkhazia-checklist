@@ -1,5 +1,5 @@
 /* «Соберись!» — service worker (офлайн) */
-const CACHE = 'abkhazia-v18';
+const CACHE = 'abkhazia-v19';
 const ASSETS = [
   './',
   './index.html',
