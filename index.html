@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Соберись!</title>
 <!-- PWA / iPhone -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,9 +14,9 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
   :root{
-    --bg:#f4f1ea; --card:#fffdf8; --ink:#2b2620; --muted:#8a8175;
+    --bg:#f4f1ea; --card:#fffdf8; --ink:#2b2620; --muted:#736b5f;
     --line:#e7e0d3; --accent:#1f7a5c; --accent-soft:#e3f1ea;
-    --done:#b7ac99; --warn:#c9822f; --warn-soft:#fbeedd; --red:#c14b3f;
+    --done:#968b78; --warn:#c9822f; --warn-soft:#fbeedd; --red:#c14b3f;
     --shadow:0 1px 3px rgba(60,50,30,.08),0 6px 18px rgba(60,50,30,.06);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -24,7 +24,7 @@
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     background:var(--bg); color:var(--ink);
-    padding-bottom:calc(88px + env(safe-area-inset-bottom)); -webkit-font-smoothing:antialiased;
+    padding-bottom:calc(88px + env(safe-area-inset-bottom)); -webkit-font-smoothing:antialiased; touch-action:manipulation;
   }
   /* ---- Lock screen ---- */
   #lock{
@@ -43,6 +43,7 @@
   #lock .err{color:var(--red); font-size:12.5px; font-weight:600; min-height:16px; text-align:center; max-width:300px; line-height:1.4}
   /* ---- App ---- */
   header{position:sticky; top:0; z-index:20; background:var(--bg); padding:calc(12px + env(safe-area-inset-top)) 16px 9px; border-bottom:1px solid var(--line)}
+  header > *{max-width:612px; margin-left:auto; margin-right:auto}
   .h-row{display:flex; align-items:center; justify-content:space-between; gap:10px}
   .h-right{display:flex; align-items:center; gap:8px}
   .bar{height:8px; background:var(--line); border-radius:99px; margin-top:11px; overflow:hidden}
@@ -70,8 +71,9 @@
   nav button.done .dot{background:var(--accent)}
   @media(min-width:680px){ nav{padding-left:calc(50% - 320px); padding-right:calc(50% - 320px)} }
   main{padding:14px 14px 20px; max-width:640px; margin:0 auto}
-  .page{display:none; animation:fade .25s ease}
+  .page{display:none}
   .page.on{display:block}
+  .page.anim{animation:fade .25s ease}
   @keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
   .group{background:var(--card); border:1px solid var(--line); border-radius:16px; margin-bottom:14px; box-shadow:var(--shadow); overflow:hidden}
   .g-head{display:flex; align-items:center; gap:9px; padding:13px 15px; cursor:pointer; user-select:none}
@@ -100,7 +102,9 @@
   .acts{display:none; gap:6px; flex:none}
   body.editmode .acts{display:flex}
   body.editmode .item{cursor:default}
-  body.editmode .item .box{opacity:.35}
+  body.editmode .item .box{display:none}
+  body.editmode .item .drag{order:-1}
+  body.editmode .g-head .cnt, body.editmode .g-head .chev{display:none}
   .act{width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; padding:0}
   .act.del{color:var(--red); border-color:#e6cfc9}
   /* Ручка перетаскивания (в режиме правки) */
@@ -113,8 +117,7 @@
   .additem:active{background:var(--accent-soft)}
   .additem .addtx{color:var(--accent); font-weight:700; font-size:14px}
   .additem .plus{font-weight:800; font-size:16px; color:var(--accent); flex:none}
-  .newgrp{display:none; align-items:center; gap:8px; padding:11px 12px; margin:4px 4px 14px; border:1.5px dashed var(--accent); border-radius:12px; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; background:var(--card); justify-content:center}
-  body.editmode .newgrp{display:flex}
+  .newgrp{display:flex; align-items:center; gap:8px; padding:11px 12px; margin:4px 4px 14px; border:1.5px dashed var(--accent); border-radius:12px; color:var(--accent); font-weight:700; font-size:13px; cursor:pointer; background:var(--card); justify-content:center}
   .foot{text-align:center; padding:8px 0 4px; display:flex; flex-direction:column; gap:8px; align-items:center}
   .reset{background:none; border:1px solid var(--line); color:var(--muted); font-family:inherit; font-size:12px; font-weight:600; padding:9px 16px; border-radius:99px; cursor:pointer}
   .reset:active{background:var(--card)}
@@ -173,7 +176,7 @@
   /* ---- Действия у подкатегорий (в правке) ---- */
   .g-acts{display:none; gap:6px; margin-left:2px; flex:none}
   body.editmode .g-acts{display:flex}
-  .g-acts button{width:28px; height:28px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:12.5px; padding:0}
+  .g-acts button{width:32px; height:32px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:12.5px; padding:0}
   .g-acts button.del{color:var(--red); border-color:#e6cfc9}
   /* ---- Эмодзи-пикер ---- */
   .emoji-cur{display:flex; align-items:center; gap:11px; margin:2px 0 10px}
@@ -190,7 +193,6 @@
   .prof-avatar{width:34px; height:34px; border-radius:99px; border:1px solid var(--line); background:var(--card); color:var(--accent); font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; padding:0}
   #profile{position:fixed; inset:0; z-index:85; background:var(--bg); display:flex; flex-direction:column; padding:calc(12px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom)); overflow-y:auto; -webkit-overflow-scrolling:touch; animation:fade .2s ease}
   #profile.hidden{display:none}
-  .prof-hint{font-size:12.5px; color:var(--muted); line-height:1.5; margin:-2px 0 12px; background:var(--accent-soft); padding:11px 13px; border-radius:12px}
   .prof-sec{font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin:20px 2px 9px}
   .prof-cat{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 13px; margin-bottom:8px; box-shadow:var(--shadow)}
   .prof-cat .pc-emo{font-size:18px; flex:none}
@@ -206,7 +208,7 @@
   .ts-head h3{margin:0}
   .ts-del{border:0; background:none; color:var(--red); font-family:inherit; font-weight:700; font-size:13.5px; cursor:pointer; padding:6px 4px; display:flex; align-items:center; gap:5px}
   .ts-del.hidden{display:none}
-  .fld textarea{width:100%; border:1.5px solid var(--line); background:#fff; border-radius:11px; padding:12px 13px; font-family:inherit; font-size:15px; color:var(--ink); line-height:1.4; resize:vertical; min-height:88px}
+  .fld textarea{width:100%; border:1.5px solid var(--line); background:#fff; border-radius:11px; padding:12px 13px; font-family:inherit; font-size:16px; color:var(--ink); line-height:1.4; resize:vertical; min-height:88px}
   .fld textarea:focus{outline:none; border-color:var(--accent)}
   /* ---- Перетаскивание: плейсхолдер-«разрыв» ---- */
   .drag-ph{margin:2px 6px; border:1.5px dashed var(--accent); border-radius:11px; background:var(--accent-soft); pointer-events:none}
@@ -218,7 +220,7 @@
   .sheet-card, .vlist, .emoji-grid, #profile, #trips{ overscroll-behavior:contain }
   .trip-card .ghandle{display:flex; margin-right:2px}
   /* ---- Ручка перетаскивания у подкатегорий и категорий ---- */
-  .ghandle{display:none; width:28px; height:28px; flex:none; align-items:center; justify-content:center; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--muted); font-size:13px; touch-action:none; cursor:grab; padding:0; user-select:none}
+  .ghandle{display:none; width:32px; height:32px; flex:none; align-items:center; justify-content:center; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--muted); font-size:13px; touch-action:none; cursor:grab; padding:0; user-select:none}
   body.editmode .ghandle{display:flex}
   .group.dragging, .sub.dragging{opacity:.35}
   /* ---- Секция-заголовок в правке ---- */
@@ -226,7 +228,7 @@
   .sub .sub-tx{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .sub-acts{display:none; gap:6px; flex:none; margin-left:auto}
   body.editmode .sub-acts{display:flex}
-  .sub-acts button{width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:12px; padding:0; color:var(--muted)}
+  .sub-acts button{width:32px; height:32px; border-radius:7px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:12px; padding:0; color:var(--muted)}
   .sub-acts button.del{color:var(--red); border-color:#e6cfc9}
   .newsub{display:none; align-items:center; justify-content:center; gap:8px; padding:10px 12px; margin:2px 4px 14px; border:1.5px dashed var(--muted); border-radius:12px; color:var(--muted); font-weight:700; font-size:13px; cursor:pointer; background:var(--card)}
   body.editmode .newsub{display:flex}
@@ -248,6 +250,21 @@
   .emoji-own input{flex:1; min-width:0; border:1.5px solid var(--line); background:#fff; border-radius:11px; padding:10px 12px; font-family:inherit; font-size:18px; text-align:center; color:var(--ink)}
   .emoji-own input:focus{outline:none; border-color:var(--accent)}
   .emoji-own button{flex:none; border:0; background:var(--accent-soft); color:var(--accent); font-family:inherit; font-weight:700; font-size:13px; padding:0 14px; border-radius:11px; cursor:pointer}
+  /* ---- Отступ между «удалить» и «перетащить» ---- */
+  .g-acts .ghandle, .sub-acts .ghandle{margin-left:10px}
+  /* ---- Пустая категория ---- */
+  .empty-cat{font-size:13px; color:var(--muted); text-align:center; line-height:1.5; padding:26px 12px 10px}
+  /* ---- Категория в режиме правки ---- */
+  .catrow{display:none; gap:8px; margin:2px 4px 14px}
+  body.editmode .catrow{display:flex}
+  .catrow button{flex:1; min-width:0; border:1.5px dashed var(--muted); background:var(--card); color:var(--muted); font-family:inherit; font-weight:700; font-size:13px; padding:10px 8px; border-radius:12px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  /* ---- Шаблон: без галочек и прогресса ---- */
+  body.tplmode .item .box, body.tplmode .bar, body.tplmode .bar-row{display:none}
+  /* ---- Всплывающая подсказка с «Отменить» ---- */
+  #toast{position:fixed; left:50%; bottom:calc(84px + env(safe-area-inset-bottom)); transform:translate(-50%,20px); z-index:95; display:flex; align-items:center; gap:14px; max-width:calc(100% - 32px); background:#2b2620; color:#fff; font-size:14px; padding:11px 14px 11px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s}
+  #toast.show{opacity:1; transform:translate(-50%,0); pointer-events:auto}
+  #toast .tx{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #toast button{flex:none; border:0; background:none; color:#8fd3b6; font-family:inherit; font-weight:800; font-size:14px; padding:4px 2px; cursor:pointer}
 </style>
 </head>
 <body>
@@ -277,7 +294,7 @@
       <div class="h-right">
         <button class="hbtn" id="viewBtn" onclick="openViewCurrent()" aria-label="Показать списком" title="Показать списком"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
         <button class="hbtn" id="editBtn" onclick="toggleEdit()" aria-label="Править" title="Править"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
-        <button class="prof-avatar" id="profBtn" onclick="openProfile(false)">👤</button>
+        <button class="prof-avatar" id="profBtn" onclick="openProfile()" aria-label="Профиль" title="Профиль">👤</button>
       </div>
     </div>
     <div class="trip-meta" id="tripMeta"></div>
@@ -315,7 +332,6 @@
     <h2>Профиль</h2>
     <button class="x" onclick="closeProfile()">Закрыть</button>
   </div>
-  <div class="prof-hint" id="profHint" style="display:none"></div>
   <label class="fld"><span>Ваше имя</span>
     <input id="profName" type="text" placeholder="Например, Артём" autocomplete="off" enterkeyhint="done" oninput="saveProfName()">
   </label>
@@ -412,6 +428,8 @@
   </div>
 </div>
 
+<div id="toast" role="status" aria-live="polite"><span class="tx" id="toastTx"></span><button id="toastBtn" onclick="toastAction()"></button></div>
+
 <script>
 /* ================= ДОСТУП (только вход через Google) =================
    В коде НЕТ ни списка разрешённых email, ни содержимого списка.
@@ -476,8 +494,9 @@ function showApp(){
   document.getElementById('lock').classList.add('hidden');
   document.getElementById('app').style.display='block';
   if(!window.__swReg){ window.__swReg=true; registerSW(); }
+  /* имя для значка профиля — из Google-аккаунта, если ещё не задано */
+  if(__authedUser && !getProfName() && __authedUser.displayName) setProfNameStore(__authedUser.displayName.split(' ')[0]);
   render(); updateAvatar(); updateSyncUI();
-  if(__authedUser && !getProfName()){ openProfile(true); }
 }
 function registerSW(){
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
@@ -733,15 +752,21 @@ function showSyncInfo(){ if(syncErr) alert(syncErr); }
 const CHECK='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const pagesEl=document.getElementById('pages');
 const tabsEl=document.getElementById('tabs');
-let active = MODEL[0] ? MODEL[0].key : null;
+/* Какая категория была открыта в каждой поездке — чтобы вернуться туда же */
+function lastCats(){ try{ return JSON.parse(localStorage.getItem('last_cat')||'{}')||{}; }catch(e){ return {}; } }
+function rememberCat(){ const t=activeTrip(); if(!t||!active) return; const m=lastCats(); m[t.id]=active; lsSet('last_cat', JSON.stringify(m)); }
+function defaultCat(){ const t=activeTrip(), k=t&&lastCats()[t.id]; return (k && MODEL.some(p=>p.key===k)) ? k : (MODEL[0]?MODEL[0].key:null); }
+let active = defaultCat();
 let hideDone=false; try{ hideDone=localStorage.getItem('hide_done')==='1'; }catch(e){}
 function toggleHideDone(){ hideDone=!hideDone; try{ localStorage.setItem('hide_done', hideDone?'1':'0'); }catch(e){} render(); }
-const openState={};
+/* Свёрнутые подкатегории (ключ «категория|gid» → false), помнятся между запусками */
+const openState=(()=>{ try{ return JSON.parse(localStorage.getItem('open_state')||'{}')||{}; }catch(e){ return {}; } })();
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 function render(){
   renderTripHeader();
-  if(MODEL.length && !MODEL.some(p=>p.key===active)) active=MODEL[0].key;
+  document.body.classList.toggle('tplmode', isTemplate(activeTrip()));
+  if(MODEL.length && !MODEL.some(p=>p.key===active)) active=defaultCat();
   pagesEl.innerHTML=''; tabsEl.innerHTML='';
   if(!MODEL.length){
     const noTrips=!STATE.trips.length;
@@ -768,9 +793,9 @@ function render(){
       if(typeof g.sub==='string'){
         html+=`<div class="sub" data-gid="${gid}"><span class="sub-tx">${esc(g.sub)}</span>
           <span class="sub-acts">
-            <button onclick="openSubEditor(event,'${p.key}','${gid}')">✎</button>
-            <button class="del" onclick="deleteGroup(event,'${p.key}','${gid}')">✕</button>
-            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}','${gid}')">≡</button>
+            <button onclick="openSubEditor(event,'${p.key}','${gid}')" aria-label="Изменить" title="Изменить">✎</button>
+            <button class="del" onclick="deleteGroup(event,'${p.key}','${gid}')" aria-label="Удалить" title="Удалить">✕</button>
+            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}','${gid}')" aria-label="Перетащить" title="Перетащить">≡</button>
           </span></div>`;
         return;
       }
@@ -780,9 +805,9 @@ function render(){
         <div class="g-head" onclick="toggleGroup('${gk}')">
           <span class="emo">${esc(g.emo||'')}</span><span class="ttl">${esc(g.title)}</span>
           <span class="g-acts">
-            <button onclick="openGroupEditor(event,'${p.key}','${gid}')">✎</button>
-            <button class="del" onclick="deleteGroup(event,'${p.key}','${gid}')">✕</button>
-            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}','${gid}')">≡</button>
+            <button onclick="openGroupEditor(event,'${p.key}','${gid}')" aria-label="Изменить" title="Изменить">✎</button>
+            <button class="del" onclick="deleteGroup(event,'${p.key}','${gid}')" aria-label="Удалить" title="Удалить">✕</button>
+            <button class="ghandle" onpointerdown="onGroupHandleDown(event,'${p.key}','${gid}')" aria-label="Перетащить" title="Перетащить">≡</button>
           </span>
           <span class="cnt" id="cnt-${gk}"></span><span class="chev">▼</span>
         </div><div class="items">`;
@@ -791,14 +816,16 @@ function render(){
         html+=`<div class="item${it.done?' checked':''}" data-id="${it.id}" onpointerdown="onItemPointerDown(event,'${it.id}')">
           <span class="box" onclick="boxTap(event,'${it.id}')">${CHECK}</span>
           <div class="lbl-wrap" onclick="openTaskEdit('${it.id}')"><span class="lbl">${esc(it.t)}</span>${note}</div>
-          <span class="acts"><button class="act del" onclick="delItem(event,'${it.id}')">✕</button></span>
-          <button class="drag" onpointerdown="onHandleDown(event,'${it.id}')">≡</button>
+          <span class="acts"><button class="act del" onclick="delItem(event,'${it.id}')" aria-label="Удалить" title="Удалить">✕</button></span>
+          <button class="drag" onpointerdown="onHandleDown(event,'${it.id}')" aria-label="Перетащить" title="Перетащить">≡</button>
         </div>`;
       });
       html+=`<div class="additem" onclick="openTaskNew('${p.key}','${gid}')"><span class="plus">＋</span><span class="addtx">Добавить задачу</span></div></div></div>`;
     });
+    if(!p.groups.length) html+=`<div class="empty-cat">Здесь пока пусто.<br>Создайте подкатегорию (например, «Документы») и добавляйте в неё задачи.</div>`;
     html+=`<div class="newgrp" onclick="openGroupEditor(null,'${p.key}',null)">＋ Подкатегория</div>`;
     html+=`<div class="newsub" onclick="openSubEditor(null,'${p.key}',null)">＋ Заголовок-раздел</div>`;
+    html+=`<div class="catrow"><button onclick="openCatEditor('${p.key}')">✎ Эта категория</button><button onclick="openCatEditor(null)">＋ Новая категория</button></div>`;
     page.innerHTML=html; pagesEl.appendChild(page);
     const btn=document.createElement('button');
     btn.dataset.p=p.key; if(p.key===active) btn.classList.add('on');
@@ -814,17 +841,46 @@ function findItem(id){ for(const p of MODEL) for(const g of p.groups) if(g.items
 function findGroup(pk,gid){ const p=MODEL.find(x=>x.key===pk); if(!p) return null; const gi=p.groups.findIndex(g=>g.gid===gid); return gi<0?null:{p,g:p.groups[gi],gi}; }
 /* Правили то, что тем временем удалили на другом устройстве */
 function goneAlert(){ alert('Этот элемент уже удалён на другом устройстве.'); }
-function toggleGroup(gk){ if(justDragged) return; openState[gk]=!(openState[gk]!==false); document.querySelector(`.group[data-gk="${gk}"]`).classList.toggle('closed'); }
+function toggleGroup(gk){ if(justDragged) return;
+  if(openState[gk]===false) delete openState[gk]; else openState[gk]=false;
+  lsSet('open_state', JSON.stringify(openState));
+  document.querySelector(`.group[data-gk="${gk}"]`).classList.toggle('closed'); }
 let justDragged=false;
 function boxTap(e,id){
   e.stopPropagation();
   if(document.body.classList.contains('editmode')) return;
   const f=findItem(id); if(!f) return;
-  f.it.done=!f.it.done; /* выполненные уходят вниз при рендере */
-  save(); render();
+  f.it.done=!f.it.done;
+  const el=e.currentTarget && e.currentTarget.closest('.item'); if(el) el.classList.toggle('checked', f.it.done);
+  refresh(); save();
+  if(hideDone && f.it.done) showToast('«'+f.it.t+'» — отмечено', 'Отменить', ()=>{ const g=findItem(id); if(g){ g.it.done=false; save(); render(); } });
+  /* выполненные уезжают вниз (или скрываются) не сразу — чтобы было видно, что отметилось */
+  clearTimeout(resortTimer); resortTimer=setTimeout(()=>{ if(!drag) render(); }, 900);
 }
-function delItem(e,id){ e.stopPropagation(); const f=findItem(id); if(!f) return;
-  if(!confirm("Удалить: «"+f.it.t+"»?")) return; f.g.items=f.g.items.filter(x=>x.id!==id); save(); render(); }
+let resortTimer=null;
+function delItem(e,id){ e.stopPropagation(); removeItemWithUndo(id); }
+/* Удаление задачи без вопроса, но с «Вернуть» в подсказке внизу */
+function findGroupAny(pk,gid){ for(const t of STATE.trips) for(const p of t.model) if(p.key===pk){ const g=p.groups.find(x=>x.gid===gid); return g||null; } return null; }
+function removeItemWithUndo(id){
+  const f=findItem(id); if(!f) return;
+  const pk=f.p.key, gid=f.g.gid, idx=f.g.items.indexOf(f.it), it=f.it;
+  f.g.items=f.g.items.filter(x=>x!==it); save(); render();
+  showToast('Удалено: «'+it.t+'»', 'Вернуть', ()=>{
+    const g=findGroupAny(pk,gid); if(!g){ goneAlert(); return; }
+    if(g.items.some(x=>x.id===it.id)) return;
+    g.items.splice(Math.min(idx,g.items.length),0,it); save(); render();
+  });
+}
+/* ---- Подсказка внизу экрана (с кнопкой «Отменить»/«Вернуть») ---- */
+let toastTimer=null, toastFn=null;
+function showToast(text, btn, fn){
+  document.getElementById('toastTx').textContent=text;
+  const b=document.getElementById('toastBtn'); b.textContent=btn||''; b.style.display=btn?'':'none';
+  toastFn=fn||null; document.getElementById('toast').classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(hideToast, fn?5000:2500);
+}
+function hideToast(){ document.getElementById('toast').classList.remove('show'); toastFn=null; }
+function toastAction(){ const fn=toastFn; hideToast(); if(fn) fn(); }
 
 /* ---- Окно задачи (Todoist-стиль) ---- */
 let tsMode='new', tsId=null, tsPk=null, tsGid=null;
@@ -881,10 +937,7 @@ function saveTaskSheet(){
 }
 function deleteTaskFromSheet(){
   if(tsMode!=='edit'||!tsId) return;
-  const f=findItem(tsId); if(!f) return;
-  if(!confirm('Удалить задачу «'+f.it.t+'»?')) return;
-  f.g.items=f.g.items.filter(x=>x.id!==tsId);
-  save(); closeTaskSheet(); render();
+  closeTaskSheet(); removeItemWithUndo(tsId);
 }
 
 /* ---- Окно «Посмотреть списком» ---- */
@@ -903,26 +956,28 @@ function openViewSheet(pk){
   document.getElementById('vsBody').innerHTML = html ? (`<div class="tc-lbl" style="margin:0 0 6px">Взято ${done} из ${total}</div>`+html) : '<div class="trips-empty">Пусто</div>';
   openVS();
 }
-function go(pk){ active=pk;
-  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+pk));
+function go(pk){ active=pk; rememberCat();
+  document.querySelectorAll('.page').forEach(p=>{ const on=p.id==='page-'+pk;
+    p.classList.toggle('on',on); p.classList.remove('anim'); if(on){ void p.offsetWidth; p.classList.add('anim'); } });
   [...tabsEl.children].forEach(b=>b.classList.toggle('on',b.dataset.p===pk)); window.scrollTo({top:0}); }
 function openViewCurrent(){ if(active) openViewSheet(active); }
 function setHint(){
   document.getElementById('hint').textContent = document.body.classList.contains('editmode')
-    ? 'Правка: ✎ изменить, ✕ удалить, ≡ или долгое нажатие — перетащить. Ниже — «＋ Подкатегория» и «＋ Заголовок-раздел».'
-    : 'Нажмите на задачу, чтобы открыть её. «Править» — заголовки-разделы, подкатегории и порядок.';
+    ? 'Правка: ≡ — перетащить (или долгое нажатие), ✎ — изменить, ✕ — удалить. Внизу — разделы и категории.'
+    : 'Нажмите на задачу, чтобы открыть её. Карандаш вверху — порядок, разделы и категории.';
 }
 function toggleEdit(){ document.body.classList.toggle('editmode'); setHint(); }
 function refresh(){
-  let T=0,D=0;
+  let T=0,D=0; const tpl=document.body.classList.contains('tplmode');
   MODEL.forEach(p=>{ let pt=0,pd=0;
     p.groups.forEach(g=>{ if(!g.items) return; let gt=0,gd=0;
       g.items.forEach(it=>{gt++; if(it.done)gd++;}); pt+=gt; pd+=gd;
       const c=document.getElementById(`cnt-${p.key}|${g.gid}`);
-      if(c){c.textContent=`${gd}/${gt}`; c.classList.toggle('full',gt>0&&gd===gt);} });
+      if(c){c.textContent=tpl?String(gt):`${gd}/${gt}`; c.classList.toggle('full',!tpl&&gt>0&&gd===gt);} });
     T+=pt; D+=pd;
     const dot=document.getElementById('dot-'+p.key); const btn=[...tabsEl.children].find(b=>b.dataset.p===p.key);
     if(!dot||!btn) return;
+    if(tpl){ dot.style.display='none'; return; }
     const rem=pt-pd;
     if(rem>0){dot.textContent=rem; dot.style.display='flex'; btn.classList.remove('done');}
     else{dot.textContent='✓'; dot.style.display=pt>0?'flex':'none'; btn.classList.add('done');} });
@@ -942,13 +997,16 @@ function fmtRange(a,b){
   if(a&&b){ if(a===b) return fmtOne(a); return fmtOne(a)+' – '+fmtOne(b); }
   return fmtOne(a||b);
 }
-function tripSortKey(t){ return t.dateFrom || t.dateTo || ''; }
-function sortTrips(arr){ return arr.slice().sort((a,b)=>{
-  const ka=tripSortKey(a), kb=tripSortKey(b);
-  if(ka&&kb){ if(ka!==kb) return kb<ka?-1:1; return (b.createdAt||0)-(a.createdAt||0); }
-  if(ka) return -1; if(kb) return 1;
-  return (b.createdAt||0)-(a.createdAt||0);
-}); }
+function sortTrips(arr){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const end=t=>pd(t.dateTo)||pd(t.dateFrom), start=t=>pd(t.dateFrom)||pd(t.dateTo);
+  const grp=t=>{ const e=end(t); return !e ? 1 : (e>=today ? 0 : 2); };   /* 0 — идёт/впереди, 1 — без дат, 2 — прошла */
+  const byNew=(a,b)=>(b.createdAt||0)-(a.createdAt||0);
+  return arr.slice().sort((a,b)=>{ const ga=grp(a), gb=grp(b); if(ga!==gb) return ga-gb;
+    if(ga===0) return (start(a)-start(b)) || byNew(a,b);   /* ближайшая — первой */
+    if(ga===2) return (end(b)-end(a)) || byNew(a,b);       /* недавняя — первой */
+    return byNew(a,b); });
+}
 function plural(n,one,few,many){ const m=n%100; if(m>=11&&m<=14) return many; const d=n%10; if(d===1) return one; if(d>=2&&d<=4) return few; return many; }
 function countdown(t){
   const today=new Date(); today.setHours(0,0,0,0);
@@ -989,12 +1047,12 @@ function renderTrips(){
     else html+=tpls.map(t=>{
       const {T}=tripProgress(t); const act=t.id===STATE.activeTripId;
       return `<div class="trip-card tpl${act?' active':''}" data-tpl="${t.id}" onclick="switchTrip('${t.id}')">
-        <div class="tc-top"><button class="ghandle" onpointerdown="onTplHandleDown(event,'${t.id}')">≡</button><span class="tc-name">📋 ${esc(t.location||'Шаблон')}</span>${act?'<span class="tc-badge">открыт</span>':''}</div>
+        <div class="tc-top"><button class="ghandle" onpointerdown="onTplHandleDown(event,'${t.id}')" aria-label="Перетащить" title="Перетащить">≡</button><span class="tc-name">📋 ${esc(t.location||'Шаблон')}</span>${act?'<span class="tc-badge">открыт</span>':''}</div>
         <div class="tc-dates">${T} ${plural(T,'пункт','пункта','пунктов')}</div>
         <div class="tc-acts">
           <button onclick="openEditTrip(event,'${t.id}')">✎ Переименовать</button>
           <button onclick="duplicateTrip(event,'${t.id}')">⧉ Копия</button>
-          <button class="del" onclick="deleteTrip(event,'${t.id}')">✕</button>
+          <button class="del" onclick="deleteTrip(event,'${t.id}')" aria-label="Удалить" title="Удалить">✕</button>
         </div>
       </div>`;
     }).join('');
@@ -1014,7 +1072,7 @@ function renderTrips(){
           <button onclick="openEditTrip(event,'${t.id}')">✎ Изменить</button>
           <button onclick="duplicateTrip(event,'${t.id}')">⧉ Копия</button>
           <button onclick="makeTemplateFromTrip(event,'${t.id}')">📋 Шаблон</button>
-          <button class="del" onclick="deleteTrip(event,'${t.id}')">✕</button>
+          <button class="del" onclick="deleteTrip(event,'${t.id}')" aria-label="Удалить" title="Удалить">✕</button>
         </div>
       </div>`;
     }).join('');
@@ -1037,13 +1095,13 @@ function makeTemplateFromTrip(e,id){ e.stopPropagation();
   const t={id:tid(), kind:'template', location:src.location||'Шаблон', dateFrom:'', dateTo:'', createdAt:Date.now(), model:cloneModel(src.model)};
   STATE.trips.unshift(t);
   save(); tripsTab='templates'; setTripsTab('templates');
-  alert('Шаблон «'+t.location+'» создан. Он на вкладке «Шаблоны».');
+  showToast('Шаблон «'+t.location+'» создан');
 }
 function switchTrip(id){
   if(justDragged) return;
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
   STATE.activeTripId=id; syncModelRef();
-  active = MODEL[0] ? MODEL[0].key : null;
+  active = defaultCat();
   saveLocal(); closeTrips(); render(); window.scrollTo({top:0});
 }
 /* Глубокая копия структуры поездки: новые id, галочки сброшены */
@@ -1134,7 +1192,7 @@ function duplicateTrip(e,id){ e.stopPropagation();
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
   const copy=newTrip({location:t.location+' (копия)', dateFrom:t.dateFrom, dateTo:t.dateTo, model:cloneModel(t.model)});
   if(isTemplate(t)){ copy.kind='template'; copy.dateFrom=''; copy.dateTo=''; copy.createdAt=0; }
-  STATE.trips.push(copy); save(); renderTrips();
+  STATE.trips.push(copy); save(); renderTrips(); showToast('Копия создана');
 }
 function deleteTrip(e,id){ e.stopPropagation();
   const t=STATE.trips.find(x=>x.id===id); if(!t) return;
@@ -1507,15 +1565,10 @@ function profUid(){ return (__authedUser&&__authedUser.uid)||'anon'; }
 function getProfName(){ try{ return localStorage.getItem('prof_'+profUid())||''; }catch(e){ return ''; } }
 function setProfNameStore(v){ try{ localStorage.setItem('prof_'+profUid(), v); }catch(e){} }
 function updateAvatar(){ const n=getProfName().trim(); const b=document.getElementById('profBtn'); if(b) b.textContent = n? n[0].toUpperCase() : '👤'; }
-function openProfile(welcome){
+function openProfile(){
   if(!profileOpen) lockScroll(true);
   profileOpen=true;
-  const nm=getProfName() || (welcome && __authedUser && __authedUser.displayName ? __authedUser.displayName : '');
-  document.getElementById('profName').value=nm;
-  if(nm && welcome) setProfNameStore(nm);
-  const h=document.getElementById('profHint');
-  if(welcome){ h.style.display='block'; h.textContent='Добро пожаловать! Заполните имя — так вы и близкие будете видеть, чей это список.'; }
-  else { h.style.display='none'; }
+  document.getElementById('profName').value=getProfName();
   const at=activeTrip();
   document.getElementById('profTripName').textContent = isTemplate(at)?'Шаблон':(at?at.location:'поездка');
   renderProfileCats(); renderStorage(); updateAvatar();
@@ -1535,11 +1588,33 @@ function renderProfileCats(){
   const box=document.getElementById('profCats'); if(!box) return;
   if(!MODEL.length){ box.innerHTML='<div class="trips-empty" style="padding:12px 6px">Категорий пока нет. Нажмите «＋ Категория».</div>'; return; }
   box.innerHTML=MODEL.map(p=>`<div class="prof-cat" data-key="${p.key}">
-    <button class="ghandle" onpointerdown="onCatHandleDown(event,'${p.key}')">≡</button>
+    <button class="ghandle" onpointerdown="onCatHandleDown(event,'${p.key}')" aria-label="Перетащить" title="Перетащить">≡</button>
     <span class="pc-emo">${esc(p.icon||'📋')}</span><span class="pc-name">${esc(p.tab||p.title||'Категория')}</span>
-    <button onclick="openCatEditor('${p.key}')">✎</button>
-    <button class="del" onclick="deleteCategory('${p.key}')">✕</button></div>`).join('');
+    <button onclick="openCatEditor('${p.key}')" aria-label="Изменить" title="Изменить">✎</button>
+    <button class="del" onclick="deleteCategory('${p.key}')" aria-label="Удалить" title="Удалить">✕</button></div>`).join('');
 }
+
+/* ================= КЛАВИАТУРА (компьютер) =================
+   Esc — закрыть верхнее окно (или выйти из правки); Enter — сохранить;
+   в комментарии Enter — новая строка, сохранить — Cmd/Ctrl+Enter. */
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    const open=[...document.querySelectorAll('.sheet-back')].filter(x=>x.dataset.open==='1');
+    if(open.length){ closeSheetEl(open[open.length-1]); return; }
+    if(profileOpen){ closeProfile(); return; }
+    if(tripsOpen){ closeTrips(); return; }
+    if(document.body.classList.contains('editmode')) toggleEdit();
+    return;
+  }
+  if(e.key!=='Enter' || e.isComposing) return;
+  const id=e.target && e.target.id;
+  if(id==='tsNote'){ if(e.metaKey||e.ctrlKey){ e.preventDefault(); saveTaskSheet(); } return; }
+  const act={tsName:saveTaskSheet, eName:saveESheet, fLoc:saveSheet, eOwn:applyOwnEmoji, profName:()=>e.target.blur()}[id];
+  if(act){ e.preventDefault(); act(); }
+});
+/* Отсчёт «⏳ N дней» — свежий после полуночи и при возврате в приложение */
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && appShown()) renderTripHeader(); });
+setInterval(()=>{ if(appShown()) renderTripHeader(); }, 30*60*1000);
 
 /* ================= СТАРТ ================= */
 /* Экран входа показывается по умолчанию; Firebase-модуль вызовет onAuthChange. */
