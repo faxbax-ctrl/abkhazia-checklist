@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "abkhazia-checklist"
+  },
+  "targets": {
+    "abkhazia-checklist": {
+      "hosting": {
+        "soberis": [
+          "abkhazia-checklist"
+        ]
+      }
+    }
+  }
+}
